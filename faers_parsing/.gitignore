@@ -1,0 +1,16 @@
+# Code-only: scripts and notebooks are tracked; data and credentials are not.
+
+# Credentials — never upload
+.openFDA.params
+
+# All data (raw FAERS, processed tables, local vocabulary, intermediate pickles)
+data/
+*.pkl
+
+# Language / editor noise
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.Rhistory
+.RData
+*.log

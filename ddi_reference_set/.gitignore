@@ -1,0 +1,18 @@
+# Code-only: R scripts, 00_functions.R and methodology docs (*.md) are tracked;
+# curated data, evidence, reviews, results and backups are not.
+
+# Curated data, evidence and results
+input/
+results/
+suggested/
+suggested_backup_pre_recurate/
+reviews/
+
+# dual_curation_validation: keep scripts + docs, drop its data and results
+dual_curation_validation/input/
+dual_curation_validation/results/
+
+# Language / editor noise
+.Rhistory
+.RData
+*.log

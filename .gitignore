@@ -1,0 +1,36 @@
+# ============================================================================
+# Repository scope: only the four subprojects + this README are tracked.
+# Everything else in the workspace stays on disk but is NOT uploaded.
+# ============================================================================
+
+# --- Local-only top-level directories (not part of the repo) ---
+/data/
+/manuscript/
+/dashboard/
+/.agents/
+/.claude/
+
+# --- Local-only context files ---
+/CLAUDE.md
+/PROJECT_LOG.md
+/PROJECT_LOG_archive.md
+
+# --- Credentials / secrets (defense in depth; never upload) ---
+*.params
+*.env
+.env
+*secret*
+*credential*
+*.key
+*token*
+
+# --- Editor / OS / language noise ---
+.Rhistory
+.RData
+.Rproj.user/
+__pycache__/
+*.pyc
+*.log
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db

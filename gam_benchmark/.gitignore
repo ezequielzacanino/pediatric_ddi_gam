@@ -1,0 +1,10 @@
+# Code-only: R scripts and 00_functions.R are tracked; data and results are not.
+
+data/
+input/
+results/
+
+# Language / editor noise
+.Rhistory
+.RData
+*.log
