@@ -1,0 +1,7 @@
+# Python dependencies for faers_parsing/ (Python 3.12.5)
+# Versions pinned from the environment used to build ade_raw.csv.
+pandas==2.2.2
+numpy==2.1.1
+requests==2.32.3
+PyYAML==6.0.2
+joblib  # version not resolved in the current interpreter; install latest compatible

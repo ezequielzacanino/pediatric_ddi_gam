@@ -11,7 +11,9 @@ python scripts\python\03_parse_pediatric_faers.py
 R      scripts\R\04_build_ade_raw.R
 ```
 
-Python notebooks and scripts are adapted from <https://zenodo.org/records/4464544> by Nicholas Giangreco 
+The Python notebooks and scripts are adapted from Nicholas Giangreco,
+*ngiangre/openFDA_drug_event_parsing: First release* (v1.0.0), Zenodo, 2021,
+DOI [10.5281/zenodo.4464544](https://doi.org/10.5281/zenodo.4464544).
 
 ## OMOP Vocabulary 
 

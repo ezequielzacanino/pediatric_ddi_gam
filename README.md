@@ -44,6 +44,10 @@ python scripts\python\03_parse_pediatric_faers.py          # Filter pediatric pa
 
 **Main output:** `data/processed/ade_raw.csv`
 
+The Python download/parsing scripts are adapted from Nicholas Giangreco,
+*openFDA_drug_event_parsing* (v1.0.0), Zenodo, 2021, DOI
+[10.5281/zenodo.4464544](https://doi.org/10.5281/zenodo.4464544).
+
 ---
 
 ## ddi_reference_set/
@@ -131,6 +135,40 @@ Scripts: `00_functions.R`, `01_theme.R`, `02_descriptive.R`, `10_augmentation.R`
 
 ---
 
+## End-to-end reproduction
+
+The four subprojects form a single pipeline. Run them in this order — each step's
+output feeds the next:
+
+1. **`faers_parsing/`** — download and assemble `data/processed/ade_raw.csv`.
+2. **`gam_validation/`** — produce the null distribution and detection thresholds from `ade_raw.csv`.
+3. **`ddi_reference_set/`** — curate the pediatric reference triplets.
+4. **`gam_benchmark/`** — validate the curated set against `ade_raw.csv`, using the thresholds from step 2 and the triplets from step 3.
+
+See each subproject's README for the exact scripts and per-step commands. All paths
+are relative to the project root; nothing needs editing if the layout above is preserved.
+
+---
+
+## Software environment
+
+- **R 4.4.2** (ucrt) — packages: `data.table` 1.16.2, `mgcv` 1.9.1, `MASS` 7.3-61, `akima` 0.6-3.6, `ggplot2` 4.0.1, `scales` 1.4.0, `openxlsx` 4.2.8.1, `pacman` 0.5.1. R scripts load packages via `pacman::p_load(...)`, which installs any missing package on first run.
+- **Python 3.12.5** — see [`faers_parsing/requirements.txt`](faers_parsing/requirements.txt).
+
+---
+
+## Data availability and provenance
+
+No data are stored in this repository; every input comes from public sources and is
+regenerated locally.
+
+- **FAERS (openFDA):** downloaded via the openFDA drug-event API in `faers_parsing/scripts/python/01_download_openfda_drug_event.py`. Extraction date: _to complete_. Requires an openFDA API key in `faers_parsing/.openFDA.params` (not versioned).
+- **OMOP vocabulary:** OHDSI Athena export placed in `data/vocabulary/` (SNOMED, MedDRA, RxNorm, ATC). Vocabulary version: _to complete_.
+- **MedDRA:** MedDRA is a licensed terminology and is **not** redistributed here. Reproducing the MedDRA mapping requires a valid MedDRA license and the corresponding OMOP vocabulary export.
+
+
+---
+
 ## Conventions
 
 - R comments: English
@@ -139,3 +177,9 @@ Scripts: `00_functions.R`, `01_theme.R`, `02_descriptive.R`, `10_augmentation.R`
 - OMOP vocabulary centralized in `data/vocabulary/`, referenced by `../data/vocabulary/...`
 - Data, vocabularies, results and temporaries are **not versioned**
 - R version: 4.4.2 at `C:\Program Files\R\R-4.4.2\`
+
+---
+
+## License
+
+Code released under the MIT License — see [`LICENSE`](LICENSE).

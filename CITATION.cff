@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Pediatric DDI GAM Workspace"
+abstract: >-
+  Code for building and validating a pediatric drug-drug-event (DDI) interaction
+  GAM using FAERS/openFDA data: parsing, reference-set curation, GAM
+  methodological validation, and benchmarking.
+type: software
+authors:
+  - family-names: "Zacañino"
+    given-names: "Ezequiel"
+    email: "ez.zaca@gmail.com"
+license: MIT
+repository-code: "https://github.com/ezequielzacanino/pediatric_ddi_gam"
