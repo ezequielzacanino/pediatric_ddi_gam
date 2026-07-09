@@ -162,8 +162,9 @@ are relative to the project root; nothing needs editing if the layout above is p
 No data are stored in this repository; every input comes from public sources and is
 regenerated locally.
 
-- **FAERS (openFDA):** downloaded via the openFDA drug-event API in `faers_parsing/scripts/python/01_download_openfda_drug_event.py`. Extraction date: _to complete_. Requires an openFDA API key in `faers_parsing/.openFDA.params` (not versioned).
-- **OMOP vocabulary:** OHDSI Athena export placed in `data/vocabulary/` (SNOMED, MedDRA, RxNorm, ATC). Vocabulary version: _to complete_.
+- **FAERS (openFDA):** downloaded via the openFDA drug-event API in `faers_parsing/scripts/python/01_download_openfda_drug_event.py`. 
+Requires an openFDA API key in `faers_parsing/.openFDA.params` (not versioned).
+- **OMOP vocabulary:** OHDSI Athena export placed in `data/vocabulary/` (SNOMED, MedDRA, RxNorm, ATC). 
 - **MedDRA:** MedDRA is a licensed terminology and is **not** redistributed here. Reproducing the MedDRA mapping requires a valid MedDRA license and the corresponding OMOP vocabulary export.
 
 
