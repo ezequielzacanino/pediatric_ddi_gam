@@ -1,4 +1,4 @@
-# FAERS Workspace
+# Pediatric DDI GAM Workspace
 
 Workspace with four subprojects for building and validating a pediatric
 drug-drug-event (DDI) interaction benchmark using FAERS/openFDA data.
