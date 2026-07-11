@@ -85,7 +85,9 @@ Upstream project: produces the curated set consumed by `gam_benchmark/`.
 
 **Goal:** Validate the curated set against `ade_raw.csv` using GAM models and
 stratified estimators (IOR/AC). Downstream project: consumes the curated set
-from `ddi_reference_set/`.
+from `ddi_reference_set/`. The set comprises positive and negative controls; the
+benchmark estimates specificity/PPV/NPV/AUC from both (a positive-only set leaves
+those metrics undefined).
 
 **Pipeline (from the `gam_benchmark/` root):**
 
@@ -172,8 +174,11 @@ Requires an openFDA API key in `faers_parsing/.openFDA.params` (not versioned).
 
 ## Conventions
 
-- R comments: English
-- Variables: `snake_case` in English
+- Code and comments in English
+- **Exception — `ddi_reference_set/`:** its curation documents (`*.md`: README,
+  `INCLUSION_CRITERIA.md`, `CURATION_WORKFLOW.md`, `HUMAN_CURATION_GUIDE.md`) and
+  the curation skills are written in **Spanish**, as the independent human curator is a Spanish speaker and follows them directly. All
+  code (comments, variable and function names) stays in English as everywhere else.
 - Each R project (`ddi_reference_set/`, `gam_benchmark/`, `gam_validation/`) has its own `00_functions.R`; `faers_parsing/` is independent
 - OMOP vocabulary centralized in `data/vocabulary/`, referenced by `../data/vocabulary/...`
 - Data, vocabularies, results and temporaries are **not versioned**

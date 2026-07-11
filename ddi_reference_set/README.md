@@ -81,12 +81,13 @@ El dataset final que se usará en `gam_benchmark` es el de `results/curated_pedi
   el workbook.
 - `scripts/R/02_curate_pediatric_ddi_reference_set.R`: lee la planilla, resuelve
   ATC y eventos contra el vocabulario y escribe los outputs.
-- `scripts/R/03_generate_negative_candidates.R` (opcional): recombina el set
+- `scripts/R/03_generate_negative_candidates.R`: recombina el set
   positivo (matched 1:1: `event_swap`/`drug_swap`), filtra por coReporte
   pediatrico real en FAERS y emite `results/negative_control_candidates/` con
   evidencia de plausibilidad y flags de atribucion mono-farmaco. Automatiza los
   pasos 1-2 del proceso; el tamiz contra compendios y la aceptacion siguen siendo
-  curacion manual. No escribe en el workbook.
+  curacion manual. No escribe en el workbook. Los negativos son parte del set: sin
+  ellos el benchmark no puede estimar especificidad/PPV/NPV/AUC.
 - `input/`: planilla de entrada curada a mano.
 - `results/`: outputs generados.
 

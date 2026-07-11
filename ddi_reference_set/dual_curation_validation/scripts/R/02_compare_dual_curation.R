@@ -3,19 +3,12 @@
 # Script 02_compare_dual_curation
 ################################################################################
 #
-# Reads the two completed blind workbooks (human and agent), maps every found
-# triplet to a stable key (assigned pair + resolved MedDRA PT) and contrasts the
-# two sets. Reports the basic agreement only: the per-triplet detail and a small
-# summary (counts, triplet-level Jaccard, pair-level observed agreement).
+# Reads the two completed blind workbooks (human and agent) 
+# maps every found triplet and contrasts the two sets. 
+# Reports agreement
 #
-# Matching key: (pair_id, PT concept id). pair_id is shared across both workbooks
-# (same assigned pairs), and the event is rolled up to PT so entries made at
-# different MedDRA levels still compare. A pair recorded as no_triplet_found
-# contributes no key; pairs where both curators found nothing count as agreed
-# empties at the pair level.
 #
-# Run from the dual_curation_validation/ root, after both workbooks are filled:
-#   & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\02_compare_dual_curation.R
+# Run from the dual_curation_validation/ root, after both workbooks are filled
 
 source("../00_functions.R")
 library(openxlsx)
@@ -44,25 +37,24 @@ for (f in c(human_xlsx, agent_xlsx, sample_key_file)) {
 
 event_cols <- c("event_llt", "event_pt", "event_hlt", "event_hlgt")
 
-# Each pair sheet (pair_NN) carries the triplet table from this row down; rows
-# 1-2 hold the read-only drug context. Kept in sync with script 01 (header_row).
+# Each pair sheet (pair_NN) carries the triplet table from this row down 
+# rows 1-2 hold the read-only drug context. Kept in sync with script 01 (header_row).
 header_row <- 3L
 
 ################################################################################
-# 1. Read a curator's found triplets and resolve them to PT
+# 1. Read found triplets and resolve to PT
 ################################################################################
-# A "found triplet" is a row that is not flagged no_triplet_found and carries an
-# event at some MedDRA level. Rows that only mark a pair as empty contribute no
-# key. The workbook holds one sheet per assigned pair (pair_NN); the sheet name
-# carries pair_id and the triplet table starts at header_row. Returns one row per
-# (pair_id, PT) with the resolved PT name/id.
+# A "found triplet" is a row that is not flagged no_triplet_found
+# The workbook holds one sheet per assigned pair (pair_NN)
+# the sheet name carries pair_id 
 
 is_yes <- function(x) tolower(trimws(ifelse(is.na(x), "", x))) %in% c("yes", "y", "true", "1")
 has_value <- function(x) !is.na(x) & nzchar(trimws(x))
 
 read_curator_triplets <- function(path, role) {
   empty_result <- data.table(pair_id = integer(), meddra_concept_id = character(),
-                             meddra_pt = character(), role = character())
+                             meddra_pt = character(), hlt_concept_id = character(),
+                             role = character())
 
   pair_sheets <- grep("^pair_\\d+$", getSheetNames(path), value = TRUE)
   per_sheet <- lapply(pair_sheets, function(sheet) {
@@ -97,12 +89,12 @@ read_curator_triplets <- function(path, role) {
   )
   out <- merge(
     found[, .(row_uid, pair_id)],
-    resolved[, .(triplet_id, meddra_pt, meddra_concept_id)],
+    resolved[, .(triplet_id, meddra_pt, meddra_concept_id, hlt_concept_id = meddra_concept_id_2)],
     by.x = "row_uid", by.y = "triplet_id"
   )
   out[, role := role]
   # Collapse duplicates: the same (pair, PT) entered twice by a curator is one.
-  unique(out[, .(pair_id, meddra_concept_id, meddra_pt, role)])
+  unique(out[, .(pair_id, meddra_concept_id, meddra_pt, hlt_concept_id, role)])
 }
 
 human <- read_curator_triplets(human_xlsx, "human")
@@ -141,18 +133,22 @@ setorder(triplet_compare, pair_id, meddra_pt)
 fwrite(triplet_compare, triplet_compare_file)
 
 ################################################################################
-# 3. Summary metrics (counts, triplet Jaccard, pair-level observed agreement)
+# 3. Summary metrics 
 ################################################################################
 
+# Triplet-level counts (pair, PT roll-up)
+# "matched" needs both curators to have recorded the same (pair, PT) 
+# human_only/agent_only are exclusive to one.
 n_matched <- both[status == "matched", .N]
 n_human_only <- both[status == "human_only", .N]
 n_agent_only <- both[status == "agent_only", .N]
-n_union <- n_matched + n_human_only + n_agent_only
-jaccard <- if (n_union == 0) NA_real_ else round(n_matched / n_union, 4)
 
-# Pair-level observed agreement: per assigned pair, did each curator find >= 1
-# triplet? Pairs where both found nothing agree (both empty); start from the full
-# pair list so those are counted. percent_observed_agreement is truth-free.
+# Same triplet concordance after rolling both curators' events up to the HLT
+human_hlt <- unique(human[!is.na(hlt_concept_id), .(pair_id, hlt_concept_id)])
+agent_hlt <- unique(agent[!is.na(hlt_concept_id), .(pair_id, hlt_concept_id)])
+n_matched_hlt <- nrow(merge(human_hlt, agent_hlt, by = c("pair_id", "hlt_concept_id")))
+
+# Pair-level view
 pair_found <- both[, .(human_nonempty = any(in_human), agent_nonempty = any(in_agent)),
                    by = pair_id]
 all_pairs <- unique(sample_key[, .(pair_id)])
@@ -161,18 +157,20 @@ pair_found[is.na(human_nonempty), human_nonempty := FALSE]
 pair_found[is.na(agent_nonempty), agent_nonempty := FALSE]
 pair_found[, agree := human_nonempty == agent_nonempty]
 n_pairs <- nrow(pair_found)
+# Matched pairs: both curators independently found >= 1 triplet for the same pair.
+n_matched_pairs <- pair_found[human_nonempty & agent_nonempty, .N]
 percent_observed_agreement <- round(mean(pair_found$agree), 4)
 
 summary_dt <- data.table(
   metric = c(
-    "n_triplets_human", "n_triplets_agent", "n_matched",
-    "n_human_only", "n_agent_only", "n_union", "jaccard_triplets",
-    "n_pairs", "percent_observed_agreement"
+    "n_triplets_human", "n_triplets_agent",
+    "n_human_only", "n_agent_only", "n_matched", "n_matched_hlt",
+    "n_pairs", "n_matched_pairs", "percent_observed_agreement"
   ),
   value = c(
-    nrow(human), nrow(agent), n_matched,
-    n_human_only, n_agent_only, n_union, jaccard,
-    n_pairs, percent_observed_agreement
+    nrow(human), nrow(agent),
+    n_human_only, n_agent_only, n_matched, n_matched_hlt,
+    n_pairs, n_matched_pairs, percent_observed_agreement
   )
 )
 fwrite(summary_dt, summary_file)
@@ -183,12 +181,12 @@ fwrite(summary_dt, summary_file)
 
 cat("\nDual-curation comparison (human vs agent)\n")
 cat("-----------------------------------------\n")
-cat(sprintf("  triplets: human %d | agent %d | matched %d\n",
-            nrow(human), nrow(agent), n_matched))
-cat(sprintf("  human-only %d | agent-only %d | union %d | Jaccard %s\n",
-            n_human_only, n_agent_only, n_union, jaccard))
-cat(sprintf("  pairs: %d | observed agreement %s\n",
-            n_pairs, percent_observed_agreement))
+cat(sprintf("  triplets: human %d | agent %d | matched %d (PT) / %d (HLT)\n",
+            nrow(human), nrow(agent), n_matched, n_matched_hlt))
+cat(sprintf("  human-only %d | agent-only %d\n",
+            n_human_only, n_agent_only))
+cat(sprintf("  pairs: %d | matched pairs %d | observed agreement %s\n",
+            n_pairs, n_matched_pairs, percent_observed_agreement))
 cat("\nOutputs:\n")
 cat("  ", triplet_compare_file, "\n")
 cat("  ", summary_file, "\n")

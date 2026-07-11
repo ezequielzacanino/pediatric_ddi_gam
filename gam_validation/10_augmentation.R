@@ -37,15 +37,14 @@ dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 # Run-control flags (resume helpers)
 ################################################################################
 
-# Reuse the cached triplet construction (triplets_dt, trip_summary) from a prior
-# run instead of rebuilding it. Triplet assembly is the most time-consuming step.
+# Reuse the cached triplet construction (triplets_dt, trip_summary) from a prior run
 reuse_triplet_cache <- TRUE
 triplet_cache_file  <- paste0(output_dir, "triplet_cache.rds")
 
-# When FALSE, skip the positive candidate construction and batch modelling and
-# reload pos_meta and positive scores from disk (requires a completed positive
-# run). Lets the negative section run without repeating the positive one.
-run_positives <- TRUE
+# When FALSE, skip the positive candidate construction 
+# reload pos_meta and positive scores from disk 
+# Lets the negative section run without repeating the positive one.
+run_positives <- FALSE
 
 ################################################################################
 # Data loading
@@ -71,8 +70,8 @@ message(sprintf("Dataset %s rows", format(nrow(ade_raw_dt), big.mark = ",")))
 # Preprocessing 
 ################################################################################
 
-# Map every ATC concept to its canonical ID so drugs with different formulation
-# codes but the same active compound are treated as the same entity
+# Map every ATC concept to its canonical ID 
+# drugs with different formulation codes but the same active compound as the same entity
 translation_table <- build_drug_translation_table()
 
 cat(sprintf("Original IDs: %d\n", uniqueN(translation_table$atc_concept_id)))
@@ -455,7 +454,7 @@ message("\nSuccessful positives (base): ", sum(positives_scores$model_success & 
   # run_positives is FALSE: reload pos_meta and positives_scores from disk.
   # pos_meta drives negative pool construction (drug/event pools and positive exclusion);
   # positives_scores is needed for the final comparison, summary and sensitivity blocks.
-  message("Skipping positive section: loading pos_meta and positive scores from disk...")
+  message("Skipping positive section: loading pos_meta and positive scores")
   pos_meta <- readRDS(paste0(output_dir, "pos_meta.rds"))
 
   # Reassemble positives_scores across all reduction levels from the per-level RDS

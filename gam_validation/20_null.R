@@ -19,7 +19,7 @@ min_reports_triplet <- 2
 target_total_triplets <- 10000
 max_permutation_attempts <- 15000
 
-seed_base <- 7113
+seed_base <- 12345
 
 ruta_null_pool_meta <- paste0("./results/", suffix, "/augmentation_results/null_pool_reports_metadata.csv")
 

@@ -5,7 +5,7 @@
 input/
 results/
 suggested/
-suggested_backup_pre_recurate/
+backups/
 reviews/
 
 # dual_curation_validation: keep scripts + docs, drop its data and results
