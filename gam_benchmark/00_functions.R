@@ -346,7 +346,7 @@ fit_gam <- function(drugA_id, drugB_id, event_id, ade_data,
     beta_hat <- coef(modelo)
     V_beta <- vcov(modelo, unconditional = TRUE)
 
-    B <- 2000  # bootstrap draws; matches the n_boot default in calculate_benchmark_metrics.
+    B <- 1000  # bootstrap draws; matches the n_boot default in calculate_benchmark_metrics.
 
     # Draw beta from its asymptotic joint MVN distribution.
     beta_sims <- mvrnorm(n = B, mu = beta_hat, Sigma = V_beta)
@@ -1133,7 +1133,7 @@ calculate_benchmark_metrics_from_triplet_detail <- function(
   method_name,
   detection_type,
   use_null,
-  n_boot = 2000
+  n_boot = 1000
 ) {
 
   triplet_eval <- copy(triplet_detail_dt)
@@ -1247,7 +1247,7 @@ calculate_benchmark_metrics <- function(
   method_name,
   detection_type,
   use_null,
-  n_boot = 2000
+  n_boot = 1000
 ) {
 
   triplet_eval <- dt[, .(
@@ -1273,7 +1273,7 @@ calculate_benchmark_metrics <- function(
 
 evaluate_benchmark_methods <- function(
   benchmark_expanded_dt,
-  n_boot = 2000,
+  n_boot = 1000,
   methods_cfg = NULL
 ) {
   

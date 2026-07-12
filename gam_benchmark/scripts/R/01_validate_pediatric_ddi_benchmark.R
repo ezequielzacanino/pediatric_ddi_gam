@@ -10,7 +10,7 @@ source("00_functions.R", local = TRUE)
 ################################################################################
 
 # Bootstrap iterations for sensitivity confidence intervals.
-n_boot <- 2000
+n_boot <- 1000
 
 # Set TRUE to refit even when a cached RDS already exists.
 overwrite_cache <- TRUE
