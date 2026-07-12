@@ -1215,7 +1215,7 @@ bootstrap_dynamic_diff <- function(data, dynamic_type, stage_num, n_boot = 100) 
 ################################################################################
 
 # Additive-contrast variant of bootstrap_dynamic_diff.
-# Uses the mean summary like the IOR variant
+# Resamples the median difference 
 
 bootstrap_dynamic_diff_ac <- function(data, dynamic_type, stage_num, n_boot = 100) {
 
@@ -1227,10 +1227,10 @@ bootstrap_dynamic_diff_ac <- function(data, dynamic_type, stage_num, n_boot = 10
   }
 
   boot_diffs <- replicate(n_boot, {
-    mean(sample(target_data,  replace = TRUE)) -
-    mean(sample(uniform_data, replace = TRUE))
+    median(sample(target_data,  replace = TRUE)) -
+    median(sample(uniform_data, replace = TRUE))
   })
-
+  
   data.table(
     mean_diff = mean(boot_diffs, na.rm = TRUE),
     ci_lower  = quantile(boot_diffs, 0.025, na.rm = TRUE),
