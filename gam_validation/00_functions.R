@@ -2393,7 +2393,7 @@ plot_power_surface <- function(
 # Return:
 # data.table with metrics and 95% CIs
 
-calculate_metrics <- function(dt, n_boot = 2000, aggregate_triplet = TRUE, score_type, score_type_auc) {
+calculate_metrics <- function(dt, n_boot = 1000, aggregate_triplet = TRUE, score_type, score_type_auc) {
   
   # Aggregate to triplet level if requested
   if (aggregate_triplet) {

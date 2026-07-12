@@ -9,7 +9,7 @@ source("00_functions.R", local = TRUE)
 # Configuration
 ################################################################################
 
-n_boot <- 2000
+n_boot <- 1000
 
 # Parameters for power subset calculation
 target_power <- 0.80

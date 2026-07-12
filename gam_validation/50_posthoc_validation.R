@@ -37,7 +37,7 @@ adv_seed <- 12345                # base seed for the adversarial experiment
 # Shape-fidelity parameters
 dynamic_realized_z_crit <- 1.645  # one-sided z (alpha 0.05) for a shape-faithful triplet
 flatness_alpha <- 0.05            # uniform arm counts as "flat" if its chi-square p >= this
-n_boot_posthoc <- 1000            # lighter than the pipeline's (2000) for the refit metric CIs
+n_boot_posthoc <- 1000            # matches the pipeline's (1000) for the refit metric CIs
 
 ruta_aug <- paste0("./results/", suffix, "/augmentation_results/")
 ruta_null <- paste0("./results/", suffix, "/null_distribution_results/")
