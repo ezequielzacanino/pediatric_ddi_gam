@@ -789,13 +789,11 @@ run_neg_batch_pass <- function(pass_tag, ade_pass, red_pct) {
             ac_values = list(rep(NA_real_, 7)),
             ac_lower90 = list(rep(NA_real_, 7)),
             ac_upper90 = list(rep(NA_real_, 7)),
-            ac_z = list(rep(NA_real_, 7)),
             n_stages_ac_significant = NA_integer_,
             AC_classic = list(rep(NA_real_, 7)),
             AC_classic_lower90 = list(rep(NA_real_, 7)),
             AC_classic_upper90 = list(rep(NA_real_, 7)),
-            AC_classic_se = list(rep(NA_real_, 7)),
-            AC_classic_z = list(rep(NA_real_, 7))
+            AC_classic_se = list(rep(NA_real_, 7))
           )
         } else {
           # GAM succeeded: stores all per-stage estimates
@@ -826,13 +824,11 @@ run_neg_batch_pass <- function(pass_tag, ade_pass, red_pct) {
             ac_values = list(model_res$ac_values),
             ac_lower90 = list(model_res$ac_lower90),
             ac_upper90 = list(model_res$ac_upper90),
-            ac_z = list(model_res$ac_z),
             n_stages_ac_significant = model_res$n_stages_ac_significant,
             AC_classic = if (classic_ac$success) list(classic_ac$results_by_stage$AC_classic) else list(rep(NA_real_, 7)),
             AC_classic_lower90 = if (classic_ac$success) list(classic_ac$results_by_stage$AC_classic_lower90) else list(rep(NA_real_, 7)),
             AC_classic_upper90 = if (classic_ac$success) list(classic_ac$results_by_stage$AC_classic_upper90) else list(rep(NA_real_, 7)),
-            AC_classic_se = if (classic_ac$success) list(classic_ac$results_by_stage$AC_classic_se) else list(rep(NA_real_, 7)),
-            AC_classic_z = if (classic_ac$success) list(classic_ac$results_by_stage$AC_classic_z) else list(rep(NA_real_, 7))
+            AC_classic_se = if (classic_ac$success) list(classic_ac$results_by_stage$AC_classic_se) else list(rep(NA_real_, 7))
           )
         }
 

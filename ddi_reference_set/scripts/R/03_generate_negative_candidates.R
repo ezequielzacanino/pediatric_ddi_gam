@@ -21,8 +21,8 @@ library(openxlsx)
 input_xlsx <- "./input/ddi_reference_input.xlsx"
 curated_triplets_file <-
   "./results/curated_pediatric_ddi_reference_set/curated_pediatric_ddi_triplets.csv"
-# FAERS case-level table is produced upstream and shared with gam_benchmark
-ade_raw_file <- "../gam_benchmark/data/processed/ade_raw.csv"
+# FAERS case-level table is produced upstream by faers_parsing and read live
+ade_raw_file <- "../faers_parsing/data/processed/ade_raw.csv"
 
 output_dir <- "./results/negative_control_candidates/"
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
@@ -41,7 +41,7 @@ if (!file.exists(curated_triplets_file)) {
   stop("Curated triplets not found. Run scripts/R/02_curate_pediatric_ddi_reference_set.R first.")
 }
 if (!file.exists(ade_raw_file)) {
-  stop(sprintf("%s was not found (FAERS case-level table from gam_benchmark).", ade_raw_file))
+  stop(sprintf("%s was not found (FAERS case-level table from faers_parsing).", ade_raw_file))
 }
 
 # Stable unordered drug-pair key so {A,B} and {B,A} collapse to one identifier.

@@ -75,6 +75,19 @@ null_thresholds <- merge(null_thresholds, null_thresholds_cls_ior, by = "stage")
 null_thresholds <- merge(null_thresholds, null_thresholds_cls_ac, by = "stage")
 
 ################################################################################
+# Loading co-administration data and augmentation path (consumed by expand())
+################################################################################
+
+# expand() reads the triplet-result RDS files from this base path.
+ruta_base_sensitivity <- paste0("./results/", suffix, "/augmentation_results/")
+
+coadmin_stage_pos <- fread(paste0(ruta_base_sensitivity, "positive_coadmin_by_stage.csv"))
+coadmin_stage_neg <- fread(paste0(ruta_base_sensitivity, "negative_coadmin_by_stage.csv"))
+# expand() joins on stage_num; the stored files use nichd_num.
+if (!"stage_num" %in% names(coadmin_stage_pos)) coadmin_stage_pos[, stage_num := nichd_num]
+if (!"stage_num" %in% names(coadmin_stage_neg)) coadmin_stage_neg[, stage_num := nichd_num]
+
+################################################################################
 # Loading baseline data (no reduction)
 ################################################################################
 
@@ -93,15 +106,15 @@ null_distribution <- fread(ruta_null_dist)
 null_sample <- null_distribution[sample(.N, min(.N, 50000))]
 
 comparison_data <- rbind(
-  null_sample[, .(stage_num = stage, log_ior_lower90 = log_lower90, ac_z = ac_z, source = "Null distribution")],
-  pos_high_base[, .(stage_num, log_ior_lower90 = gam_log_ior_lower90, ac_z = gam_ac_z, source = "Positives")],
-  neg_high_base[, .(stage_num, log_ior_lower90 = gam_log_ior_lower90, ac_z = gam_ac_z, source = "Negatives")]
+  null_sample[, .(stage_num = stage, log_ior_lower90 = log_lower90, ac_lower90 = ac_lower90, source = "Null distribution")],
+  pos_high_base[, .(stage_num, log_ior_lower90 = gam_log_ior_lower90, ac_lower90 = gam_ac_lower90, source = "Positives")],
+  neg_high_base[, .(stage_num, log_ior_lower90 = gam_log_ior_lower90, ac_lower90 = gam_ac_lower90, source = "Negatives")]
 )
 comparison_data[, stage_name := factor(stage_num, levels = 1:7, labels = nichd_labels)] # ordered factor for consistent facet ordering
 
 # Drop non-finite values before plotting to avoid ggplot warnings
 comparison_data <- comparison_data[ is.finite(log_ior_lower90)]
-comparison_data <- comparison_data[ is.finite(ac_z)]
+comparison_data <- comparison_data[ is.finite(ac_lower90)]
 
 
 color_palette <- c(
@@ -125,14 +138,14 @@ p_null_vs_obs_ior <- ggplot( comparison_data, aes(x = log_ior_lower90, fill = so
 
 print(p_null_vs_obs_ior)
 
-p_null_vs_obs_ac <- ggplot( comparison_data, aes(x = ac_z, fill = source)) +
+p_null_vs_obs_ac <- ggplot( comparison_data, aes(x = ac_lower90, fill = source)) +
   geom_density(alpha = 0.5, adjust = 1.5) +
   facet_wrap(~ stage_name, scales = "free_y", ncol = 4) +
   scale_fill_manual(values = color_palette) +
-  scale_x_continuous(limits = c(-10, 10)) +  # clipped for visibility; extreme outliers suppressed
+  scale_x_continuous(limits = c(-0.5, 0.5)) +  # clipped for visibility; extreme outliers suppressed
   labs(
     title = sprintf("Null distribution vs detected signals (%s)", percentil),
-    x = "Studentized additive contrast (z)",
+    x = "Additive contrast (90% CI lower bound)",
     y = "Density",
     fill = "Source"
   )
@@ -357,22 +370,22 @@ metodos <- list(
   list(nombre = "GAM-logIOR", tipo = "IOR", null = TRUE,
        score_type = "gam_log_ior_lower90", score_type_auc = "gam_log_ior"),
   list(nombre = "GAM-AC", tipo = "AC", null = TRUE,
-       score_type = "gam_ac_z", score_type_auc = "gam_ac_z"),
+       score_type = "gam_ac_lower90", score_type_auc = "gam_ac"),
   # GAM nominal (no null threshold)
   list(nombre = "GAM-logIOR_nom", tipo = "IOR", null = FALSE,
        score_type = "gam_log_ior_lower90", score_type_auc = "gam_log_ior"),
   list(nombre = "GAM-AC_nom", tipo = "AC", null = FALSE,
-       score_type = "gam_ac_z", score_type_auc = "gam_ac_z"),
+       score_type = "gam_ac_lower90", score_type_auc = "gam_ac"),
   # Stratified nominal
   list(nombre = "Estratificado-IOR", tipo = "IOR", null = FALSE,
        score_type = "classic_log_ior_lower90", score_type_auc = "classic_log_ior"),
   list(nombre = "Estratificado-AC", tipo = "AC", null = FALSE,
-       score_type = "classic_ac_z", score_type_auc = "classic_ac_z"),
+       score_type = "classic_ac_lower90", score_type_auc = "classic_ac"),
   # Stratified with null distribution threshold (requires 20_null classic outputs)
   list(nombre = "Estratificado-IOR_null", tipo = "IOR", null = TRUE,
        score_type = "classic_log_ior_lower90", score_type_auc = "classic_log_ior"),
   list(nombre = "Estratificado-AC_null", tipo = "AC", null = TRUE,
-       score_type = "classic_ac_z", score_type_auc = "classic_ac_z")
+       score_type = "classic_ac_lower90", score_type_auc = "classic_ac")
 )
 
 ################################################################################

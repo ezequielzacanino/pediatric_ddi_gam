@@ -18,9 +18,9 @@ library(openxlsx)
 # Configuration
 ################################################################################
 
-# FAERS case-level table is produced upstream and shared with gam_benchmark
+# FAERS case-level table is produced upstream by faers_parsing and read live
 # (not versioned); referenced by relative path like the OMOP vocabulary.
-ade_raw_file <- "../gam_benchmark/data/processed/ade_raw.csv"
+ade_raw_file <- "../faers_parsing/data/processed/ade_raw.csv"
 
 output_dir <- "./results/positive_control_candidates/"
 dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
@@ -57,7 +57,7 @@ crescenddi_event_col <- "EVENT_CONCEPT_NAME"
 concept_path <- ruta_concept  # shared OMOP CONCEPT.csv (from 00_functions.R)
 
 if (!file.exists(ade_raw_file)) {
-  stop(sprintf("%s was not found (FAERS case-level table from gam_benchmark).", ade_raw_file))
+  stop(sprintf("%s was not found (FAERS case-level table from faers_parsing).", ade_raw_file))
 }
 if (!file.exists(crescenddi_file)) {
   stop(sprintf(paste0(

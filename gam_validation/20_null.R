@@ -28,6 +28,9 @@ dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 
 batch_size <- 5  # keeps memory from overflowing
 
+# TRUE: resume from an existing checkpoint. FALSE: start from batch 1
+resume_from_checkpoint <- TRUE
+
 ################################################################################
 # Data loading
 ################################################################################
@@ -98,12 +101,34 @@ clusterEvalQ(cl, {
 })
 
 n_batches <- ceiling(max_permutation_attempts / batch_size)
-triplets_collected <- 0
-permutation_attempt <- 0
-failed_attempts <- 0
-batch_files <- character()  # paths to temp batch CSVs, assembled at the end
 
-for (batch in 1:n_batches) {
+# Batch checkpoint lets the run resume 
+# resumed batches reproduce the same results as the original run.
+checkpoint_file <- paste0(output_dir, "checkpoint.csv")
+
+if (resume_from_checkpoint && file.exists(checkpoint_file)) {
+  # Resume: restore counters and continue after the last completed batch
+  checkpoint <- fread(checkpoint_file)
+  start_batch <- checkpoint$last_completed_batch + 1
+  triplets_collected <- checkpoint$triplets_collected
+  permutation_attempt <- checkpoint$permutation_attempt
+  failed_attempts <- checkpoint$failed_attempts
+  message(sprintf("Resuming from checkpoint: batch %d/%d | %d triplets already collected",
+                  start_batch, n_batches, triplets_collected))
+} else {
+  # Fresh start: clear stale batch files from any previous run
+  stale_batches <- list.files(output_dir, pattern = "^batch_[0-9]{4}\\.csv$", full.names = TRUE)
+  if (length(stale_batches) > 0) file.remove(stale_batches)
+  start_batch <- 1
+  triplets_collected <- 0
+  permutation_attempt <- 0
+  failed_attempts <- 0
+}
+
+# Empty range when all batches are already done (crash after the last batch)
+batch_seq <- if (start_batch <= n_batches) start_batch:n_batches else integer(0)
+
+for (batch in batch_seq) {
   
   if (triplets_collected >= target_total_triplets) {
     message("\nTarget reached")
@@ -245,8 +270,8 @@ for (batch in 1:n_batches) {
       if (!model_res$success) next
       if (any(is.na(model_res$log_ior)) ||
         any(is.infinite(model_res$log_ior)) ||
-        any(is.na(model_res$ac_z)) ||
-        any(is.infinite(model_res$ac_z))) next
+        any(is.na(model_res$ac_lower90)) ||
+        any(is.infinite(model_res$ac_lower90))) next
 
       # Classic methods on permuted data (null distribution for stratified methods)
       classic_null_ior <- tryCatch(calculate_classic_ior(rowt$drugA, rowt$drugB, rowt$meddra, ade_modified),
@@ -255,8 +280,8 @@ for (batch in 1:n_batches) {
         error = function(e) list(success = FALSE))
       classic_ior_lower90_vec <- if (classic_null_ior$success)
         classic_null_ior$results_by_stage$log_ior_classic_lower90 else rep(NA_real_, 7)
-      classic_ac_z_vec <- if (classic_null_ac$success)
-        classic_null_ac$results_by_stage$AC_classic_z else rep(NA_real_, 7)
+      classic_ac_lower90_vec <- if (classic_null_ac$success)
+        classic_null_ac$results_by_stage$AC_classic_lower90 else rep(NA_real_, 7)
 
       result_dt <- data.table(
         drugA = rowt$drugA,
@@ -265,10 +290,10 @@ for (batch in 1:n_batches) {
         stage = 1:7,
         log_lower90 = model_res$log_ior_lower90,
         log_ior = model_res$log_ior,
-        ac_z = model_res$ac_z,
+        ac_lower90 = model_res$ac_lower90,
         ac_values = model_res$ac_values,
         classic_ior_lower90  = classic_ior_lower90_vec,
-        classic_ac_z = classic_ac_z_vec,
+        classic_ac_lower90 = classic_ac_lower90_vec,
         permutation = perm_id,
         spline_individuales = spline_individuales,
         include_sex = include_sex,
@@ -319,8 +344,7 @@ for (batch in 1:n_batches) {
     # Write incrementally to disk rather than accumulating in memory
     batch_file <- paste0(output_dir, "batch_", sprintf("%04d", batch), ".csv")
     fwrite(batch_data, batch_file)
-    batch_files <- c(batch_files, batch_file)
-    
+
     triplets_collected <- triplets_collected + batch_triplets
     
     message(sprintf("  Batch done: %d/%d successful | Total: %d/%d triplets (%.1f%%)",
@@ -332,7 +356,17 @@ for (batch in 1:n_batches) {
   } else {
     message(sprintf("  Batch done: 0/%d successful", length(batch_perms)))
   }
-  
+
+  # Persist checkpoint so a crash resumes from the next batch. Written after the
+  # batch CSV and counter updates; batch files are deterministic, so redoing a
+  # batch that crashed before this point overwrites its CSV with identical data.
+  fwrite(data.table(
+    last_completed_batch = batch,
+    triplets_collected = triplets_collected,
+    permutation_attempt = permutation_attempt,
+    failed_attempts = failed_attempts
+  ), checkpoint_file)
+
   # Free memory after each batch before starting the next
   rm(batch_results, batch_results_clean, successful_results)
   if (exists("batch_data")) rm(batch_data)
@@ -356,6 +390,9 @@ message(sprintf("\nTriplets collected: %d", triplets_collected))
 message(sprintf("Target: %d (%.1f%% complete)",
                 target_total_triplets,
                 100 * triplets_collected / target_total_triplets))
+
+# Collect batch CSVs from disk (resume-safe: includes batches from prior runs)
+batch_files <- list.files(output_dir, pattern = "^batch_[0-9]{4}\\.csv$", full.names = TRUE)
 
 # Read batch CSVs in chunks to avoid saturating memory when concatenating
 chunk_size <- 10
@@ -393,8 +430,8 @@ null_thresholds <- null_all[, .(
   n_samples = .N,
   mean_null = mean(log_lower90, na.rm = TRUE),
   sd_null = sd(log_lower90, na.rm = TRUE),
-  mean_null_ac = mean(ac_z, na.rm = TRUE),
-  sd_null_ac = sd(ac_z, na.rm = TRUE)
+  mean_null_ac = mean(ac_lower90, na.rm = TRUE),
+  sd_null_ac = sd(ac_lower90, na.rm = TRUE)
 ), by = stage]
 
 null_thresholds[, stage_name := niveles_nichd[stage]]
@@ -403,13 +440,13 @@ cat("Thresholds by stage:\n")
 print(null_thresholds[, .(stage, stage_name, threshold_p99, n_samples)])
 
 null_thresholds_ac <- null_all[, .(
-  threshold_p90 = quantile(ac_z, 0.90, na.rm = TRUE),
-  threshold_p95 = quantile(ac_z, 0.95, na.rm = TRUE),
-  threshold_p99 = quantile(ac_z, 0.99, na.rm = TRUE),
-  threshold_p999 = quantile(ac_z, 0.999, na.rm = TRUE),
+  threshold_p90 = quantile(ac_lower90, 0.90, na.rm = TRUE),
+  threshold_p95 = quantile(ac_lower90, 0.95, na.rm = TRUE),
+  threshold_p99 = quantile(ac_lower90, 0.99, na.rm = TRUE),
+  threshold_p999 = quantile(ac_lower90, 0.999, na.rm = TRUE),
   n_samples = .N,
-  mean_null = mean(ac_z, na.rm = TRUE),
-  sd_null = sd(ac_z, na.rm = TRUE)
+  mean_null = mean(ac_lower90, na.rm = TRUE),
+  sd_null = sd(ac_lower90, na.rm = TRUE)
 ), by = stage]
 
 null_thresholds_ac[, stage_name := niveles_nichd[stage]]
@@ -431,11 +468,11 @@ null_thresholds_classic_ior <- null_all[, .(
 null_thresholds_classic_ior[, stage_name := niveles_nichd[stage]]
 
 null_thresholds_classic_ac <- null_all[, .(
-  threshold_p90 = quantile(classic_ac_z, 0.90, na.rm = TRUE),
-  threshold_p95 = quantile(classic_ac_z, 0.95, na.rm = TRUE),
-  threshold_p99 = quantile(classic_ac_z, 0.99, na.rm = TRUE),
-  threshold_p999 = quantile(classic_ac_z, 0.999, na.rm = TRUE),
-  n_samples = sum(!is.na(classic_ac_z))
+  threshold_p90 = quantile(classic_ac_lower90, 0.90, na.rm = TRUE),
+  threshold_p95 = quantile(classic_ac_lower90, 0.95, na.rm = TRUE),
+  threshold_p99 = quantile(classic_ac_lower90, 0.99, na.rm = TRUE),
+  threshold_p999 = quantile(classic_ac_lower90, 0.999, na.rm = TRUE),
+  n_samples = sum(!is.na(classic_ac_lower90))
 ), by = stage]
 null_thresholds_classic_ac[, stage_name := niveles_nichd[stage]]
 
@@ -463,7 +500,10 @@ execution_summary <- data.table(
             target_total_triplets, permutation_attempt,
             triplets_collected,
             100 * (permutation_attempt - failed_attempts) / permutation_attempt,
-            nrow(null_all), nrow(null_all[!is.na(ac_z)]))
+            nrow(null_all), nrow(null_all[!is.na(ac_lower90)]))
 )
 fwrite(execution_summary, paste0(output_dir, "execution_summary.csv"))
+
+# Run completed: drop the checkpoint so a re-run starts fresh
+if (file.exists(checkpoint_file)) file.remove(checkpoint_file)
 

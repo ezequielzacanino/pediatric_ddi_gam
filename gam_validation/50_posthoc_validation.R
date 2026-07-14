@@ -110,11 +110,11 @@ metodos_core <- list(
   list(nombre = "GAM-logIOR",         tipo = "IOR",  measure = "IOR",
        score_type = "gam_log_ior_lower90",     score_type_auc = "gam_log_ior"),
   list(nombre = "GAM-AC",           tipo = "AC", measure = "AC",
-       score_type = "gam_ac_z",              score_type_auc = "gam_ac_z"),
+       score_type = "gam_ac_lower90",          score_type_auc = "gam_ac"),
   list(nombre = "Estratificado-IOR",  tipo = "IOR",  measure = "IOR",
        score_type = "classic_log_ior_lower90", score_type_auc = "classic_log_ior"),
   list(nombre = "Estratificado-AC", tipo = "AC", measure = "AC",
-       score_type = "classic_ac_z",          score_type_auc = "classic_ac_z")
+       score_type = "classic_ac_lower90",      score_type_auc = "classic_ac")
 )
 
 # High-reporting stage classification by dynamic 
@@ -479,12 +479,11 @@ process_adv_pair <- function(pair_row, ade_raw_dt, shapes, get_shape_fn, bootstr
     res <- data.table(
       base_pair_id = pair_row$base_pair_id, shape = sh, stage_num = 1:7,
       gam_log_ior = g$log_ior, gam_log_ior_lower90 = g$log_ior_lower90,
-      gam_ac = g$ac_values, gam_ac_lower90 = g$ac_lower90, gam_ac_z = g$ac_z,
+      gam_ac = g$ac_values, gam_ac_lower90 = g$ac_lower90,
       classic_log_ior = if (isTRUE(ci$success)) ci$results_by_stage$log_ior_classic else NA_real_,
       classic_log_ior_lower90 = if (isTRUE(ci$success)) ci$results_by_stage$log_ior_classic_lower90 else NA_real_,
       classic_ac = if (isTRUE(cr$success)) cr$results_by_stage$AC_classic else NA_real_,
-      classic_ac_lower90 = if (isTRUE(cr$success)) cr$results_by_stage$AC_classic_lower90 else NA_real_,
-      classic_ac_z = if (isTRUE(cr$success)) cr$results_by_stage$AC_classic_z else NA_real_
+      classic_ac_lower90 = if (isTRUE(cr$success)) cr$results_by_stage$AC_classic_lower90 else NA_real_
     )
     res[, is_active := stage_num %in% active]
     out[[length(out) + 1]] <- res
@@ -691,13 +690,13 @@ module3 <- function() {
 
 
 # Score-column map: each method x measure pairs its permutation-null column (from null_distribution.csv)
-# nominal: per-method significance floor for the double criterion (0 on the log-IOR
-# lower-bound scale; qnorm(0.95) for the studentized additive contrast z).
+# nominal: per-method significance floor for the double criterion (0 on the
+# lower-bound scale for both the log-IOR and the additive contrast).
 adequacy_methods <- list(
   list(label = "GAM-IOR",         null_col = "log_lower90",          neg_col = "log_ior_lower90",         nominal = 0),
-  list(label = "GAM-AC",        null_col = "ac_z",               neg_col = "ac_z",                  nominal = qnorm(0.95)),
+  list(label = "GAM-AC",        null_col = "ac_lower90",         neg_col = "ac_lower90",            nominal = 0),
   list(label = "Stratified-IOR",  null_col = "classic_ior_lower90",  neg_col = "log_ior_classic_lower90", nominal = 0),
-  list(label = "Stratified-AC", null_col = "classic_ac_z",       neg_col = "AC_classic_z",          nominal = qnorm(0.95))
+  list(label = "Stratified-AC", null_col = "classic_ac_lower90", neg_col = "AC_classic_lower90",    nominal = 0)
 )
 
 module4 <- function() {

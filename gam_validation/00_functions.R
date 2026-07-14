@@ -881,7 +881,7 @@ fit_gam <- function(drugA_id, drugB_id, event_id, ade_data,
 
     # Additive interaction contrast (Thakrar) on predicted reporting proportions:
     # p11 - p10 - p01 + p00
-    #  detection uses the studentized contrast ac_z (contrast / SE)
+    # detection uses the raw contrast and its 90% CI lower bound
     calc_add <- function(p) {
       # p: 4 predicted reporting proportions per stage: [p00, p10, p01, p11]
       p11 <- p[4]; p10 <- p[2]; p01 <- p[3]; p00 <- p[1]
@@ -893,14 +893,11 @@ fit_gam <- function(drugA_id, drugB_id, event_id, ade_data,
       idx <- .I
       p_mat <- p_sims[idx, , drop = FALSE]
       add_sim <- apply(p_mat, 2, calc_add)
-      add_mean <- mean(add_sim)
-      add_se <- sd(add_sim)
 
       data.table(
-        AC = add_mean,
+        AC = mean(add_sim),
         AC_lower90 = quantile(add_sim, 0.05),
-        AC_upper90 = quantile(add_sim, 0.95),
-        ac_z = add_mean / add_se
+        AC_upper90 = quantile(add_sim, 0.95)
       )
     }, by = nichd_num]
 
@@ -911,8 +908,7 @@ fit_gam <- function(drugA_id, drugB_id, event_id, ade_data,
     ac_values <- ac_dt$AC
     ac_lower90 <- ac_dt$AC_lower90
     ac_upper90 <- ac_dt$AC_upper90
-    ac_z <- ac_dt$ac_z
-    
+
     ###########
     # 4- Results
     ###########
@@ -933,8 +929,7 @@ fit_gam <- function(drugA_id, drugB_id, event_id, ade_data,
       ac_values = ac_values,
       ac_lower90 = ac_lower90,
       ac_upper90 = ac_upper90,
-      ac_z = ac_z,
-      n_stages_ac_significant = sum(ac_z > qnorm(0.95), na.rm = TRUE),
+      n_stages_ac_significant = sum(ac_lower90 > 0, na.rm = TRUE),
       model_aic = AIC(modelo),
       model_deviance = deviance(modelo),
       formula_used = formula_parts,
@@ -1057,7 +1052,7 @@ calculate_classic_ior <- function(drugA_id, drugB_id, event_id, ade_data,
 
 # Computes the stratified additive interaction contrast (Thakrar) per stage 
 # R11 - R10 - R01 + R00 
-# Detection uses the studentized contrast AC_classic_z = contrast / SE
+# Detection uses the raw contrast and its 90% CI lower bound.
 # Haldane-Anscombe correction applied when classic_continuity_correction is TRUE.
 # Returns a list with success and results_by_stage.
 
@@ -1107,7 +1102,6 @@ calculate_classic_ac <- function(drugA_id, drugB_id, event_id, ade_data,
         AC_classic_lower90 = NA_real_,
         AC_classic_upper90 = NA_real_,
         AC_classic_se = NA_real_,
-        AC_classic_z = NA_real_,
         n_11_evento = n_11_evento,
         n_11_total = n_11_total,
         n_10_evento = n_10_evento,
@@ -1137,9 +1131,8 @@ calculate_classic_ac <- function(drugA_id, drugB_id, event_id, ade_data,
       # Var(contrast) is the sum of the four binomial variances 
       se_ac <- sqrt(var_R11 + var_R10 + var_R01 + var_R00)
 
-      # Studentized contrast is the scale-free detection score; 90% CI for display
+      # 90% CI for the additive contrast (binomial SE); detection uses the lower bound
       z90 <- qnorm(0.95)
-      ac_z <- ac_val / se_ac
       ac_lower90 <- ac_val - z90 * se_ac
       ac_upper90 <- ac_val + z90 * se_ac
 
@@ -1149,7 +1142,6 @@ calculate_classic_ac <- function(drugA_id, drugB_id, event_id, ade_data,
         AC_classic_lower90 = ac_lower90,
         AC_classic_upper90 = ac_upper90,
         AC_classic_se = se_ac,
-        AC_classic_z = ac_z,
         # Individual proportions for diagnostics
         R11 = R11, R10 = R10, R01 = R01, R00 = R00,
         # Diagnostic counts
@@ -1230,7 +1222,7 @@ bootstrap_dynamic_diff_ac <- function(data, dynamic_type, stage_num, n_boot = 10
     median(sample(target_data,  replace = TRUE)) -
     median(sample(uniform_data, replace = TRUE))
   })
-  
+    
   data.table(
     mean_diff = mean(boot_diffs, na.rm = TRUE),
     ci_lower  = quantile(boot_diffs, 0.025, na.rm = TRUE),
@@ -1326,13 +1318,11 @@ process_single_positive <- function(idx, pos_meta, ade_raw_dt, reduction_levels,
       ac_values = list(rep(NA_real_, 7)),
       ac_lower90 = list(rep(NA_real_, 7)),
       ac_upper90 = list(rep(NA_real_, 7)),
-      ac_z = list(rep(NA_real_, 7)),
       n_stages_ac_significant = NA_integer_,
       AC_classic = list(rep(NA_real_, 7)),
       AC_classic_lower90 = list(rep(NA_real_, 7)),
       AC_classic_upper90 = list(rep(NA_real_, 7)),
       AC_classic_se = list(rep(NA_real_, 7)),
-      AC_classic_z = list(rep(NA_real_, 7)),
       diagnostics = diag_data,
       spline_individuales = spline_individuales,
       nichd_spline = nichd_spline,
@@ -1517,13 +1507,11 @@ fit_reduced_model <- function(eval_dt, rowt, reduction_pct) {
       ac_values = list(rep(NA_real_, 7)),
       ac_lower90 = list(rep(NA_real_, 7)),
       ac_upper90 = list(rep(NA_real_, 7)),
-      ac_z = list(rep(NA_real_, 7)),
       n_stages_ac_significant = NA_integer_,
       AC_classic = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic) else list(rep(NA_real_, 7)),
       AC_classic_lower90 = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_lower90) else list(rep(NA_real_, 7)),
       AC_classic_upper90 = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_upper90) else list(rep(NA_real_, 7)),
       AC_classic_se = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_se) else list(rep(NA_real_, 7)),
-      AC_classic_z = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_z) else list(rep(NA_real_, 7)),
       diagnostics = list(list(error = model_res$error_msg)),
       spline_individuales = spline_individuales,
       nichd_spline = nichd_spline,
@@ -1570,13 +1558,11 @@ fit_reduced_model <- function(eval_dt, rowt, reduction_pct) {
     ac_values = list(model_res$ac_values),
     ac_lower90 = list(model_res$ac_lower90),
     ac_upper90 = list(model_res$ac_upper90),
-    ac_z = list(model_res$ac_z),
     n_stages_ac_significant = model_res$n_stages_ac_significant,
     AC_classic = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic) else list(rep(NA_real_, 7)),
     AC_classic_lower90 = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_lower90) else list(rep(NA_real_, 7)),
     AC_classic_upper90 = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_upper90) else list(rep(NA_real_, 7)),
     AC_classic_se = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_se) else list(rep(NA_real_, 7)),
-    AC_classic_z = if(classic_ac$success) list(classic_ac$results_by_stage$AC_classic_z) else list(rep(NA_real_, 7)),
     diagnostics = list(list()),
     spline_individuales = spline_individuales,
     nichd_spline = nichd_spline,
@@ -1699,19 +1685,17 @@ expand_clean_all_metrics <- function(dt, label_val, null_thresholds_dt,
     gam_log_ior_lower90 <- unlist(log_ior_lower90)
     gam_ac <- unlist(ac_values)
     gam_ac_lower90 <- unlist(ac_lower90)
-    gam_ac_z <- unlist(ac_z)
 
     # Classical stratified metrics
     cls_log_ior <- unlist(log_ior_classic)
     cls_log_ior_lower90 <- unlist(log_ior_classic_lower90)
     cls_ac <- unlist(AC_classic)
     cls_ac_lower90 <- unlist(AC_classic_lower90)
-    cls_ac_z <- unlist(AC_classic_z)
 
     n <- min(length(stages), length(gam_log_ior), length(gam_log_ior_lower90),
-             length(gam_ac), length(gam_ac_lower90), length(gam_ac_z),
+             length(gam_ac), length(gam_ac_lower90),
              length(cls_log_ior), length(cls_log_ior_lower90),
-             length(cls_ac), length(cls_ac_lower90), length(cls_ac_z))
+             length(cls_ac), length(cls_ac_lower90))
 
     if (n > 0) {
       data.table(
@@ -1721,13 +1705,11 @@ expand_clean_all_metrics <- function(dt, label_val, null_thresholds_dt,
         gam_log_ior_lower90 = gam_log_ior_lower90[1:n],
         gam_ac = gam_ac[1:n],
         gam_ac_lower90 = gam_ac_lower90[1:n],
-        gam_ac_z = gam_ac_z[1:n],
         # Stratified
         classic_log_ior = cls_log_ior[1:n],
         classic_log_ior_lower90 = cls_log_ior_lower90[1:n],
         classic_ac = cls_ac[1:n],
-        classic_ac_lower90 = cls_ac_lower90[1:n],
-        classic_ac_z = cls_ac_z[1:n]
+        classic_ac_lower90 = cls_ac_lower90[1:n]
       )
     }
   }, by = by_cols]
@@ -1846,13 +1828,13 @@ calculate_power_gam <- function(
         stop("column threshold_ac not present in the data or in null_thresholds")
       }
       pos_clean[, ac_detected := (
-        !is.na(gam_ac_z) &
-          gam_ac_z > qnorm(0.95) &
-          gam_ac_z > threshold_ac
+        !is.na(gam_ac_lower90) &
+          gam_ac_lower90 > 0 &
+          gam_ac_lower90 > threshold_ac
       )]
     } else {
       pos_clean[, ac_detected := (
-        !is.na(gam_ac_z) & gam_ac_z > qnorm(0.95)
+        !is.na(gam_ac_lower90) & gam_ac_lower90 > 0
       )]
     }
   }
@@ -2071,16 +2053,16 @@ calculate_power_classic <- function(
     )]
     
   } else if (detection == "ac") {
-    # AC (additive contrast) only: studentized contrast > qnorm(0.95)
+    # AC (additive contrast) only: 90% CI lower bound > 0
     pos_clean[, is_detected := (
-      !is.na(classic_ac_z) & classic_ac_z > qnorm(0.95)
+      !is.na(classic_ac_lower90) & classic_ac_lower90 > 0
     )]
 
   } else {  # detection == "double"
-    # Double criterion: IOR (log-IOR CI > 0) OR AC (studentized contrast > qnorm(0.95))
+    # Double criterion: IOR (log-IOR CI > 0) OR AC (additive contrast CI > 0)
     pos_clean[, is_detected := (
       (!is.na(classic_log_ior_lower90) & classic_log_ior_lower90 > 0) |
-      (!is.na(classic_ac_z) & classic_ac_z > qnorm(0.95))
+      (!is.na(classic_ac_lower90) & classic_ac_lower90 > 0)
     )]
   }
     
@@ -2661,20 +2643,17 @@ detect_signal <- function(dt, method_name, detection_type, use_null) {
   # Determine columns based on the method
   if (is_gam) {
     ior_col <- "gam_log_ior_lower90"
-    ac_col <- "gam_ac_z"          # studentized additive contrast
+    ac_col <- "gam_ac_lower90"     # additive contrast, 90% CI lower bound
     thresh_ior_col <- "threshold_ior"  # null distribution thresholds
     thresh_ac_col <- "threshold_ac"
   } else {
     ior_col <- "classic_log_ior_lower90"
-    ac_col <- "classic_ac_z"       # studentized additive contrast
+    ac_col <- "classic_ac_lower90"  # additive contrast, 90% CI lower bound
     # Classic null thresholds. populated when 20_null runs classic methods
     thresh_ior_col  <- "threshold_classic_ior"
     thresh_ac_col <- "threshold_classic_ac"
   }
 
-  # Nominal significance cut for the studentized additive contrast: z > qnorm(0.95)
-  z90 <- qnorm(0.95)
-  
   # Compute detection flags by criterion type
   # use_null applies to both GAM (threshold_ior/ac) and classic (threshold_classic_ior/ac)
   if (detection_type == "IOR") {
@@ -2684,9 +2663,9 @@ detect_signal <- function(dt, method_name, detection_type, use_null) {
       dt[, detected := !is.na(get(ior_col)) & get(ior_col) > 0]}
   } else if (detection_type == "AC") {
     if (use_null && thresh_ac_col %in% names(dt)) {
-      dt[, detected := !is.na(get(ac_col)) & get(ac_col) > z90 & get(ac_col) > get(thresh_ac_col)]
+      dt[, detected := !is.na(get(ac_col)) & get(ac_col) > 0 & get(ac_col) > get(thresh_ac_col)]
     } else {
-      dt[, detected := !is.na(get(ac_col)) & get(ac_col) > z90]}
+      dt[, detected := !is.na(get(ac_col)) & get(ac_col) > 0]}
   } else {
     # Double criterion: IOR OR AC
     ior_det <- if (use_null && thresh_ior_col %in% names(dt)) {
@@ -2694,9 +2673,9 @@ detect_signal <- function(dt, method_name, detection_type, use_null) {
     } else {
       !is.na(dt[[ior_col]]) & dt[[ior_col]] > 0}
     ac_det <- if (use_null && thresh_ac_col %in% names(dt)) {
-      !is.na(dt[[ac_col]]) & dt[[ac_col]] > z90 & dt[[ac_col]] > dt[[thresh_ac_col]]
+      !is.na(dt[[ac_col]]) & dt[[ac_col]] > 0 & dt[[ac_col]] > dt[[thresh_ac_col]]
     } else {
-      !is.na(dt[[ac_col]]) & dt[[ac_col]] > z90}
+      !is.na(dt[[ac_col]]) & dt[[ac_col]] > 0}
     dt[, detected := ior_det | ac_det]
   }
   

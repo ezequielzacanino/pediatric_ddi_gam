@@ -23,8 +23,8 @@
 
 source("00_functions.R", local = TRUE)
 
-# FAERS case-level table shared with gam_benchmark (relative path, not versioned).
-ade_raw_file <- "../gam_benchmark/data/processed/ade_raw.csv"
+# FAERS case-level table produced by faers_parsing, read live (relative path, not versioned).
+ade_raw_file <- "../faers_parsing/data/processed/ade_raw.csv"
 
 ################################################################################
 # 1. Parse --key value arguments
