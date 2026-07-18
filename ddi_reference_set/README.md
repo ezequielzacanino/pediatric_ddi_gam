@@ -24,13 +24,19 @@ Desde la raiz de `ddi_reference_set/`:
 # de partida de la curacion de positivos: el agente trabaja la lista, el humano cura.
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\01_generate_positive_candidates.R
 
-# Cada vez que se edita la planilla: mapea y produce los CSV de salida.
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\02_curate_pediatric_ddi_reference_set.R
+# Consolidacion: cada vez que se edita la planilla, mapea y produce los CSV de
+# salida. Corre despues de curar positivos y otra vez despues de curar negativos.
+& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\curate_pediatric_ddi_reference_set.R
 
-# Propone candidatos a control negativo (recombinacion del set
-# positivo + coReporte pediatrico FAERS) para el tamiz manual del curador.
+# Propone candidatos a control negativo (recombinacion del set positivo ya
+# consolidado + coReporte pediatrico FAERS) para el tamiz manual del curador.
+# Los negativos aceptados vuelven al workbook y se consolidan con el script de
+# arriba.
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\03_generate_negative_candidates.R
 ```
+
+El orden de corrida completo esta en
+[`CURATION_WORKFLOW.md`](CURATION_WORKFLOW.md) (seccion "Mapa del flujo").
 
 ## Como agregar tripletes
 
@@ -79,8 +85,10 @@ El dataset final que se usará en `gam_benchmark` es el de `results/curated_pedi
   por etapa NICHD y el evento adulto como pista. Es la lista-guia de la que parte
   la curacion de positivos (en vez de elegir pares de forma libre). No escribe en
   el workbook.
-- `scripts/R/02_curate_pediatric_ddi_reference_set.R`: lee la planilla, resuelve
-  ATC y eventos contra el vocabulario y escribe los outputs.
+- `scripts/R/curate_pediatric_ddi_reference_set.R`: lee la planilla, resuelve
+  ATC y eventos contra el vocabulario y escribe los outputs. Es el paso de
+  consolidacion: corre despues de cada edicion del workbook, tanto al curar
+  positivos como negativos.
 - `scripts/R/03_generate_negative_candidates.R`: recombina el set
   positivo (matched 1:1: `event_swap`/`drug_swap`), filtra por coReporte
   pediatrico real en FAERS y emite `results/negative_control_candidates/` con

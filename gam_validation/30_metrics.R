@@ -123,11 +123,18 @@ color_palette <- c(
   "Negatives" = "#E41A1C"
 )
 
-p_null_vs_obs_ior <- ggplot( comparison_data, aes(x = log_ior_lower90, fill = source)) +
+# Log(IOR) has extreme outliers (min ~ -6900). geom_density() spreads its 512 evaluation
+# points over the full data range, leaving almost none inside the displayed window, so the
+# density must be computed on a restricted window. The KDE bandwidth is ~0.05, so points
+# beyond +-10 contribute nothing to the curve shown over +-5.
+ior_compute_window <- 10
+ior_plot_data <- comparison_data[abs(log_ior_lower90) <= ior_compute_window]
+
+p_null_vs_obs_ior <- ggplot( ior_plot_data, aes(x = log_ior_lower90, fill = source)) +
   geom_density(alpha = 0.5, adjust = 1.5) +
   facet_wrap(~ stage_name, scales = "free_y", ncol = 4) +
   scale_fill_manual(values = color_palette) +
-  scale_x_continuous(limits = c(-5, 5)) +  # clipped for visibility; extreme outliers suppressed
+  coord_cartesian(xlim = c(-5, 5)) +  # zoom only; does not drop data from the density
   labs(
     title = sprintf("Null distribution vs detected signals (%s)", percentil),
     x = "Log(IOR) - lower bound 90% CI",
@@ -142,7 +149,9 @@ p_null_vs_obs_ac <- ggplot( comparison_data, aes(x = ac_lower90, fill = source))
   geom_density(alpha = 0.5, adjust = 1.5) +
   facet_wrap(~ stage_name, scales = "free_y", ncol = 4) +
   scale_fill_manual(values = color_palette) +
-  scale_x_continuous(limits = c(-0.5, 0.5)) +  # clipped for visibility; extreme outliers suppressed
+  # Null AC is near a point mass at 0; zoom on the range holding the thresholds and
+  # the positive right tail, and cap the y-axis so the central spike does not flatten the rest
+  coord_cartesian(xlim = c(-0.1, 0.25), ylim = c(0, 25)) +
   labs(
     title = sprintf("Null distribution vs detected signals (%s)", percentil),
     x = "Additive contrast (90% CI lower bound)",

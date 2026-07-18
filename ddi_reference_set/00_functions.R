@@ -56,7 +56,7 @@ read_workbook_sheet <- function(path, sheet) {
 # Vocabulary-based MedDRA mapping
 ################################################################################
 
-# Dictionary layer used by script 02 to resolve MedDRA PTs and roll them up to the HLT/HLGT identifiers
+# Dictionary layer used by the curation script to resolve MedDRA PTs and roll them up to the HLT/HLGT identifiers
 
 normalize_vocabulary_key <- function(x) {
   x <- tolower(trimws(as.character(x)))
@@ -190,7 +190,7 @@ build_benchmark_meddra_map <- function(
 ################################################################################
 
 # script 00 uses build_vocabulary_picklists() to fill the dropdown lists
-# script 02 uses resolve_meddra_event_levels() to turn the event at its finest MedDRA level into the PT/HLT/HLGT 
+# curate_pediatric_ddi_reference_set uses resolve_meddra_event_levels() to turn the event at its finest MedDRA level into the PT/HLT/HLGT
 
 # Build the vocabulary-backed dropdown lists used in the input template. 
 # Only concepts that participate in the hierarchy are offered

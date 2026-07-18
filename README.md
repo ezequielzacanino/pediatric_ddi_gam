@@ -34,7 +34,7 @@ vocabulary and produce `ade_raw.csv` as a model-ready table of pediatric reports
 python scripts\python\01_download_openfda_drug_event.py   # Download openFDA JSON
 python scripts\python\02_build_openfda_er_tables.py        # Build ER tables with OMOP
 python scripts\python\03_parse_pediatric_faers.py          # Filter pediatric patients
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\04_build_ade_raw.R  # Assemble ade_raw
+& scripts\R\04_build_ade_raw.R                             # Assemble ade_raw
 ```
 
 **External dependencies:**
@@ -56,18 +56,31 @@ The Python download/parsing scripts are adapted from Nicholas Giangreco,
 (drug1 x drug2 x MedDRA event) with explicit ATC and MedDRA codes.
 Upstream project: produces the curated set consumed by `gam_benchmark/`.
 
-**Pipeline (from the `ddi_reference_set/` root):**
+**Pipeline (from the `ddi_reference_set/` root):** candidate generation and manual
+curation feed a workbook; the consolidation script turns that workbook into the
+curated CSVs and runs after every edit to it.
 
 ```powershell
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\02_curate_pediatric_ddi_reference_set.R
+# Positive candidates -> manual curation -> workbook
+& scripts\R\01_generate_positive_candidates.R
+& scripts\R\curate_pediatric_ddi_reference_set.R
+
+# Negative candidates (built from the consolidated positives) -> manual screening
+# -> workbook -> consolidate again
+& scripts\R\03_generate_negative_candidates.R
+& scripts\R\curate_pediatric_ddi_reference_set.R
 ```
+
+Full run order and the curation SOP: `ddi_reference_set/CURATION_WORKFLOW.md`.
 
 **Key files:**
 
 | File | Role |
 |---|---|
 | `00_functions.R` | MedDRA mapping helpers and paths to the shared vocabulary |
-| `scripts/R/01_curate_...` | Defines triplets, maps ATC and MedDRA PT/HLT/HLGT |
+| `scripts/R/curate_pediatric_ddi_reference_set.R` | Reads the workbook, maps ATC and MedDRA PT/HLT/HLGT, writes the curated CSVs |
+| `scripts/R/01_generate_positive_candidates.R` | Proposes positive-control candidates (CRESCENDDI x pediatric FAERS co-reporting) |
+| `scripts/R/03_generate_negative_candidates.R` | Proposes matched negative-control candidates from the consolidated positives |
 
 **Expected inputs:**
 
@@ -125,9 +138,9 @@ thresholds consumed by `gam_benchmark/`.
 **Pipeline (from the `gam_validation/` root):**
 
 ```powershell
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' 10_augmentation.R
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' 20_null.R
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' 30_metrics.R
+& 10_augmentation.R
+& 20_null.R
+& 30_metrics.R
 ```
 
 **Expected inputs:** `../faers_parsing/data/processed/ade_raw.csv` and

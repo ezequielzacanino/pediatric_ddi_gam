@@ -9,16 +9,17 @@ triplete auditable.
 
 ## Principio rector
 
-Las **unicas entradas manuale** son el workbook `input/ddi_reference_input.xlsx` para tripletes detectados por el agente y `results/curated_pediatric_ddi_reference_set.csv` para el dataset curado final aprobado por curador humano. Todo
-lo demas (mapeo a vocabulario, validacion, outputs, candidatos negativos) es
-**generado por script y reproducible**: borrar `results/` y volver a correr los
-scripts reconstruye el set identico desde el workbook. No se edita codigo para
-agregar tripletes ni se transcriben numeros a mano.
+La **unica entrada manual** es el workbook `input/ddi_reference_input.xlsx`: ahi
+el curador humano aprueba cada triplete que entra al set. Todo lo demas (mapeo a
+vocabulario, validacion, entregables de `results/`, candidatos positivos y
+negativos) es **generado por script y reproducible**: borrar `results/` y volver
+a correr los scripts reconstruye el set identico desde el workbook. No se edita
+codigo ni `results/` para agregar tripletes, ni se transcriben numeros a mano.
 
 ## Mapa del flujo
 
 ```
-                 (manual)            (script 02)
+                 (manual)     (curate_pediatric_ddi_reference_set)
   vocabulario --> workbook  ----------------------> curated_*.csv --> gam_benchmark
    (dropdowns)   triplets +                          (entregable)
                  sources
@@ -27,6 +28,21 @@ agregar tripletes ni se transcriben numeros a mano.
             [CRESCENDDI + FAERS]      + filas workbook     |--> fila en workbook
   NEGATIVO: candidatos (script 03) --> tamiz manual -------+     + fila en sources
             [recombinacion + FAERS]   [compendios]
+```
+
+`curate_pediatric_ddi_reference_set` es el paso de **consolidacion**: corre
+despues de cada edicion del workbook y es lo unico que escribe los entregables
+de `results/`. El script `03` parte de los positivos ya consolidados, asi que la
+consolidacion aparece dos veces en el ciclo completo:
+
+```
+  01_generate_positive_candidates
+    --> curacion manual de positivos (seccion 1)  --> workbook
+      --> curate_pediatric_ddi_reference_set      (seccion 3)
+        --> 03_generate_negative_candidates
+          --> tamiz manual de negativos (seccion 2) --> workbook
+            --> curate_pediatric_ddi_reference_set  (seccion 3)
+              --> gam_benchmark
 ```
 
 ## 0. Setup (una sola vez)
@@ -85,7 +101,7 @@ del workbook. El **humano cura** ese borrador (acepta/edita/descarta).
    - `ontogenic_modulation` y, si es `yes`, `higher_risk_stages` (etapas NICHD).
 3. **Hoja `sources`** -> >=1 fila con el mismo `triplet_id` (PMID/DOI o URL
    estable + cita completa).
-4. **Correr el script 02** (seccion 3) para mapear y validar.
+4. **Correr la consolidacion** (seccion 3) para mapear y validar.
 
 ## 2. Curar un control NEGATIVO
 
@@ -136,13 +152,13 @@ real en FAERS. Columnas de decision a mirar por fila:
 2. **Hoja `sources`**: >=1 fila con ese `triplet_id` que documenta la **ausencia**
    y la **fecha de consulta** (p.ej. cita: "sin interaccion listada en
    BNF/Micromedex/SmPC del par al AAAA-MM-DD"), con URL estable.
-3. **Correr el script 02** (seccion 3).
+3. **Correr la consolidacion** (seccion 3).
 
 ## 3. Validar y consolidar
 
 ```powershell
 # Mapea, valida restricciones y escribe los entregables curados.
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\02_curate_pediatric_ddi_reference_set.R
+& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\curate_pediatric_ddi_reference_set.R
 ```
 
 El script falla con un mensaje claro si algo no cumple. Causas tipicas:
@@ -169,10 +185,10 @@ PPV, NPV, AUC) se pueblan automaticamente; con set positivo-only quedan `NA`.
   aunque se elimine el triplete. Los ids `Nxxx` del CSV de candidatos son
   **posicionales** (cambian entre corridas): al aceptar, fijar un id propio.
 - **Toda fila trazable**: positivos con PMID/DOI/URL de la evidencia; negativos
-  con la cita de ausencia + fecha de consulta. Sin fuente, el script 02 falla.
+  con la cita de ausencia + fecha de consulta. Sin fuente, la consolidacion falla.
 - **No transcribir numeros**: los outputs y el manuscrito leen los CSV en vivo.
-- **Reproducibilidad verificable**: borrar `results/` y correr `02` (y `01`)
-  reconstruye todo desde el workbook; `01` es determinista (sin azar).
+- **Reproducibilidad verificable**: borrar `results/` y correr la consolidacion
+  (y `01`) reconstruye todo desde el workbook; `01` es determinista (sin azar).
 
 
 ## Checklist 
@@ -180,9 +196,9 @@ PPV, NPV, AUC) se pueblan automaticamente; con set positivo-only quedan `NA`.
 **Positivo:** correr `01` -> tomar candidato de la lista (cobertura >= 2 etapas)
 -> evidencia pediatrica + dossier -> criterio OK -> fila `triplets`
 (`control_type=positive`, `interaction_type` real) -> fila(s) `sources`
-(PMID/DOI) -> humano cura -> correr `02`.
+(PMID/DOI) -> humano cura -> correr la consolidacion.
 
 **Negativo:** correr `03` -> tomar `suggested` -> tamiz compendios (sin
 interaccion para ese evento + no es ADR mono-farmaco) -> fila `triplets`
 (`control_type=negative`, `interaction_type=none`, id estable propio) -> fila
-`sources` (ausencia + fecha) -> correr `02`.
+`sources` (ausencia + fecha) -> correr la consolidacion.

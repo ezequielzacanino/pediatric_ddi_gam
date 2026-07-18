@@ -1,11 +1,14 @@
 ################################################################################
 # Construction script for the pediatric curated reference set
 #
-# Script 02_curate_pediatric_ddi_reference_set
+# Script curate_pediatric_ddi_reference_set
 ################################################################################
 #
 # Reads the curator-maintained workbook (input/ddi_reference_input.xlsx)
-# produces the analysis-ready triplets and sources consumed by gam_benchmark. 
+# produces the analysis-ready triplets and sources consumed by gam_benchmark.
+#
+# Consolidation step: runs after every workbook edit, both after positives are
+# curated (script 01) and after negatives are curated (script 03).
 
 source("00_functions.R", local = TRUE)
 library(openxlsx)

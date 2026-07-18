@@ -13,7 +13,7 @@
 # Run from ddi_reference_set/. By id (no vocabulary read):
 #   Rscript scripts/R/faers_triplet_coreport.R \
 #     --drug1-id <atc_concept_id> --drug2-id <atc_concept_id> --event-id <meddra_pt_concept_id>
-# By name (resolves through the OMOP vocabulary exactly like script 02, so ids
+# By name (resolves through the OMOP vocabulary exactly like the curation script, so ids
 # match the ones the pipeline assigns):
 #   Rscript scripts/R/faers_triplet_coreport.R \
 #     --drug1 "methotrexate; systemic" --drug2 "trimethoprim; systemic" \
@@ -85,7 +85,7 @@ resolve_event_id <- function() {
   if (ev[, all(is.na(c(event_llt, event_pt, event_hlt, event_hlgt)))]) {
     stop("Provide --event-id or one of --event-llt/--event-pt/--event-hlt/--event-hlgt.")
   }
-  # Same resolver script 02 uses: rolls the entered level up to its PT concept id.
+  # Same resolver the curation script uses: rolls the entered level up to its PT concept id.
   as.integer(resolve_meddra_event_levels(ev)$meddra_concept_id)
 }
 

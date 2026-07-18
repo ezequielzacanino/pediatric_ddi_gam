@@ -89,7 +89,7 @@ la evaluacion (Kontsioti 2023). De mayor a menor:
 - `theoretical`: solo mecanismo o extrapolacion de clase, sin caso observado
   (excluido por los criterios de los positivos; se mantiene por completitud).
 
-Si el curador deja `evidence_level` vacio, el script `01` lo deriva tomando el
+Si el curador deja `evidence_level` vacio, la consolidacion lo deriva tomando el
 nivel mas alto presente entre el `source_type` del triplete y todas sus fuentes
 (`derive_triplet_evidence_level` en `00_functions.R`). Es un default determinista
 y reproducible que el curador puede sobreescribir.
@@ -185,7 +185,7 @@ Aplican a los **controles positivos** (los negativos se rigen por su seccion):
    `evidence_level`, `confidence_level` y las etapas.
 2. Agregar su(s) fuente(s) en la hoja `sources` con el mismo `triplet_id` (en un
    negativo, la cita documenta la ausencia de interaccion y la fecha de consulta).
-3. Correr `scripts/R/02_curate_pediatric_ddi_reference_set.R`. El script valida
+3. Correr `scripts/R/curate_pediatric_ddi_reference_set.R`. El script valida
    el mapeo y las restricciones; si algo no cumple, falla indicando el problema.
 
 > Si el workbook se regenera desde el seed (`00_build_input_template.R` con

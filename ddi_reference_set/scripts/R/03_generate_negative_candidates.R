@@ -38,7 +38,7 @@ if (!file.exists(input_xlsx)) {
   stop(sprintf("%s was not found. Run scripts/R/00_build_input_template.R first.", input_xlsx))
 }
 if (!file.exists(curated_triplets_file)) {
-  stop("Curated triplets not found. Run scripts/R/02_curate_pediatric_ddi_reference_set.R first.")
+  stop("Curated triplets not found. Run scripts/R/curate_pediatric_ddi_reference_set.R first.")
 }
 if (!file.exists(ade_raw_file)) {
   stop(sprintf("%s was not found (FAERS case-level table from faers_parsing).", ade_raw_file))
@@ -48,7 +48,7 @@ if (!file.exists(ade_raw_file)) {
 pair_key <- function(a, b) paste(pmin(a, b), pmax(a, b), sep = "_")
 
 ################################################################################
-# 1. Positive set: workbook cells + ids resolved by script 02
+# 1. Positive set: workbook cells + ids resolved by the curation script
 ################################################################################
 
 # Dropdown cell strings come from the workbook
