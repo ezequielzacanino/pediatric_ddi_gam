@@ -88,8 +88,7 @@ la evaluacion (Kontsioti 2023). De mayor a menor:
 
 Si el curador deja `evidence_level` vacio, la consolidacion lo deriva tomando el
 nivel mas alto presente entre el `source_type` del triplete y todas sus fuentes
-(`derive_triplet_evidence_level` en `00_functions.R`). Es un default determinista
-y reproducible que el curador puede sobreescribir.
+(`derive_triplet_evidence_level` en `00_functions.R`). 
 
 ## Origen de los candidatos positivos
 
