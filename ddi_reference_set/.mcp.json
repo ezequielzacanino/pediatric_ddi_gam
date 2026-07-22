@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "biomcp": {
+      "command": "python",
+      "args": ["-m", "biomcp", "run"]
+    }
+  }
+}

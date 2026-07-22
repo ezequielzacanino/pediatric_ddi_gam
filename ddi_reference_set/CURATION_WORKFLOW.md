@@ -54,6 +54,15 @@ la curacion manual):
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\00_build_input_template.R
 ```
 
+El agente de curacion espera el conector MCP `biomcp` (declarado en `.mcp.json`),
+que aporta etiquetas FDA (`openfda_label_searcher`/`openfda_label_getter`), FAERS
+(`openfda_adverse_searcher`), PubMed (`article_searcher`) y ensayos
+(`trial_searcher`); PubMed tambien via el MCP `search_articles`. La DB de
+interacciones es **DDInter local**: `scripts/R/ddinter_lookup.R` sobre los CSV en
+`input/ddinter/` (pair-level; ausencia del par = evidencia de negativo). El
+vocabulario del workbook se consulta con `scripts/R/vocab_lookup.R` (devuelve solo
+coincidencias, sin cargar las hojas de referencia enteras).
+
 ## 1. Curar un control POSITIVO
 
 La curacion de positivos **parte de una lista de candidatos**, no de pares
@@ -116,18 +125,22 @@ ausencia", Hauben 2016)..
 ```
 
 Produce `results/negative_control_candidates/negative_control_candidates.csv`:
-recombinaciones matched 1:1 del set positivo, filtradas por coReporte pediatrico
-real en FAERS. Columnas de decision a mirar por fila:
+recombinaciones apareadas del set positivo con dos estrategias (`event_swap` y
+`drug_swap`, ambas presentes). El coReporte pediatrico real en FAERS (del par y del
+triplete) se usa **solo como piso de elegibilidad**; entre los elegibles la lista
+sale **ordenada al azar con semilla fija** (`negative_seed`), sin columna
+`suggested`. Trabajar la lista de arriba hacia abajo, sin reordenar: ese orden es la
+seleccion reproducible y sin sesgo de Kontsioti. Columnas a leer por fila (contexto,
+no criterios de descarte):
 
-- `suggested = TRUE`: el mejor candidato matcheado a cada positivo (empezar por
-  estos; el resto son alternativas).
-- `pair_coreport`: coReportes pediatricos del par (plausibilidad; mas alto mejor).
-- `single_drug_event_max`: veces que el evento aparece con UN solo farmaco
-  (**alerta de atribucion mono-farmaco**; mas alto -> mas sospechoso, descartar).
-- `known_interacting_pair = TRUE`: el par interactua para *otro* evento
-  (`event_swap`); confirmar que NO interactua para *este* evento.
-- `match_strategy`: `event_swap` (mismo par, otro evento) o `drug_swap` (mismo
-  evento, par nuevo).
+- `match_strategy` + `known_interacting_pair`: `drug_swap` = par nuevo (`FALSE`);
+  `event_swap` con `TRUE` = el par interactua para *otro* evento, confirmar que NO
+  interactua para *este*.
+- `pair_coreport`: coReportes pediatricos del par (plausibilidad de coadministracion).
+- `single_drug_event_max`: veces que el evento coocurre con UN solo farmaco. **Solo
+  una pista** para revisar la etiqueta (y variable de estratificacion posterior),
+  **no** un umbral de descarte: la atribucion mono-farmaco se decide por la etiqueta.
+- `triplet_coreport >= 1`: piso de detectabilidad ya aplicado por el script.
 
 ### 2b. Tamiz manual 
 
@@ -136,7 +149,8 @@ real en FAERS. Columnas de decision a mirar por fila:
 1. Existe interaccion del par documentada para ese evento en compendios/etiquetas
    (consultar **FDA + SmPC + una DB de IDD** como DDInter/Drugs.com).
 2. El evento es un ADR conocido de *cualquiera* de los dos farmacos por separado
-   (revisar `single_drug_event_max` y la etiqueta de cada farmaco).
+   (decidir por la **etiqueta** de cada farmaco; `single_drug_event_max` es solo la
+   pista de FAERS que motiva la consulta, no la prueba).
 3. El par casi no se coadministra en pediatria o solo "falta evidencia" por ser
    poco estudiado (no es verdadero negativo).
 
@@ -188,7 +202,9 @@ PPV, NPV, AUC) se pueblan automaticamente; con set positivo-only quedan `NA`.
   con la cita de ausencia + fecha de consulta. Sin fuente, la consolidacion falla.
 - **No transcribir numeros**: los outputs y el manuscrito leen los CSV en vivo.
 - **Reproducibilidad verificable**: borrar `results/` y correr la consolidacion
-  (y `01`) reconstruye todo desde el workbook; `01` es determinista (sin azar).
+  (y `01`, `03`) reconstruye todo desde el workbook; `01` es determinista y `03`
+  usa una semilla fija (`negative_seed`), asi que la lista de candidatos negativos
+  es identica en cada corrida.
 
 
 ## Checklist 
@@ -198,7 +214,7 @@ PPV, NPV, AUC) se pueblan automaticamente; con set positivo-only quedan `NA`.
 (`control_type=positive`, `interaction_type` real) -> fila(s) `sources`
 (PMID/DOI) -> humano cura -> correr la consolidacion.
 
-**Negativo:** correr `03` -> tomar `suggested` -> tamiz compendios (sin
-interaccion para ese evento + no es ADR mono-farmaco) -> fila `triplets`
-(`control_type=negative`, `interaction_type=none`, id estable propio) -> fila
-`sources` (ausencia + fecha) -> correr la consolidacion.
+**Negativo:** correr `03` -> tomar candidatos en el orden aleatorio del CSV ->
+tamiz compendios (sin interaccion para ese evento + no es ADR mono-farmaco por
+etiqueta) -> fila `triplets` (`control_type=negative`, `interaction_type=none`, id
+estable propio) -> fila `sources` (ausencia + fecha) -> correr la consolidacion.

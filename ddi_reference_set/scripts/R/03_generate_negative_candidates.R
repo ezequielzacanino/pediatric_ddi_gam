@@ -3,13 +3,15 @@
 # Script 03_generate_negative_candidates
 ################################################################################
 #
-# Builds matched 1:1 negative-control *candidates* 
-# from the curated positive set and pediatric FAERS co-reporting. 
+# Builds matched negative-control *candidates*
+# from the curated positive set and pediatric FAERS co-reporting.
 #
-# matched 1:1,
+# Two matched strategies, both emitted:
 #   - event_swap: keep a curated pair (matched on the drug pair) and attach a different curated event.
 #   - drug_swap : keep a curated event (matched on the event) and replace one drug with another universe drug
-# Each positive yields one suggested candidate.
+# Selection among eligible candidates is random with a fixed seed (Kontsioti 2022:
+# negatives are drawn without bias from outcome-derived quantities). FAERS co-report
+# is used only as an eligibility gate, never to rank candidates.
 
 source("00_functions.R", local = TRUE)
 library(openxlsx)
@@ -33,6 +35,9 @@ min_pair_coreport <- 1L
 
 # Minimum distinct pediatric co-reports of the full drug-drug-event triplet
 min_triplet_coreport <- 1L
+
+# Fixed seed for the reproducible random selection among eligible candidates.
+negative_seed <- 123456L
 
 if (!file.exists(input_xlsx)) {
   stop(sprintf("%s was not found. Run scripts/R/00_build_input_template.R first.", input_xlsx))
@@ -132,7 +137,7 @@ triplet_co_counts <- triplet_co[, .(triplet_coreport = uniqueN(safetyreportid)),
                                 by = .(pair_id, event_id)]
 
 ################################################################################
-# 3. Generation of candidates (matched 1:1)
+# 3. Generation of candidates (both matched strategies)
 ################################################################################
 
 # 3a. event_swap
@@ -184,25 +189,32 @@ candidates[drug_event_support, on = .(drug1_id = drug_id, event_id), evt_support
 candidates[drug_event_support, on = .(drug2_id = drug_id, event_id), evt_support_drug2 := i.evt_support]
 candidates[is.na(evt_support_drug1), evt_support_drug1 := 0L]
 candidates[is.na(evt_support_drug2), evt_support_drug2 := 0L]
+# Reported only, for later stratification (Kontsioti): the times the event co-occurs
+# with a single one of the two drugs. Not a filter or a ranking key.
 candidates[, single_drug_event_max := pmax(evt_support_drug1, evt_support_drug2)]
 
-# Plausibility: keep only pairs with real pediatric co-reporting.
+# Eligibility gates (co-report is used only here, never to rank):
+#   plausibility  -> the pair is actually co-administered in pediatric FAERS
+#   detectability -> the full triplet is co-reported, so the benchmark can see it
 candidates <- candidates[pair_coreport >= min_pair_coreport]
-# Detectability: keep only triplets the benchmark can actually see
 candidates <- candidates[triplet_coreport >= min_triplet_coreport]
 
-# Collapse duplicate triplets
-setorder(candidates, single_drug_event_max, -pair_coreport, triplet_key)
+################################################################################
+# 5. Random selection among eligible candidates (fixed seed)
+################################################################################
+# One reproducible random draw per candidate drives both the duplicate collapse
+# (random representative) and the output order, so the curated list is unbiased
+# with respect to the co-report counts and single_drug_event_max.
+set.seed(negative_seed)
+candidates[, draw := runif(.N)]
+
+# Collapse duplicate triplets, keeping a random representative.
+setorder(candidates, triplet_key, draw)
 candidates <- unique(candidates, by = "triplet_key")
 
-# Suggested matched 1:1 pick: the top candidate per matched positive.
-candidates[, suggested := seq_len(.N) == 1L, by = matched_triplet_id]
-
-################################################################################
-# 5. Candidate form 
-################################################################################
-
-setorder(candidates, -suggested, matched_triplet_id, single_drug_event_max, -pair_coreport)
+# Random order within each matched positive: both strategies interleave, so the
+# curator works an unbiased list top-down.
+setorder(candidates, matched_triplet_id, draw)
 candidates[, triplet_id := sprintf("N%03d", seq_len(.N))]
 
 candidate_note <- paste0(
@@ -240,15 +252,14 @@ candidate_sheet <- candidates[, .(
   triplet_coreport,
   evt_support_drug1,
   evt_support_drug2,
-  single_drug_event_max,
-  suggested
+  single_drug_event_max
 )]
 
 fwrite(candidate_sheet, candidates_file)
 
 cat("\nNegative-control candidates:", candidates_file, "\n")
 cat("Positives matched:", uniqueN(positives$triplet_id), "\n")
-cat(sprintf("Viable candidates (pair_coreport >= %d and triplet_coreport >= %d): %d\n",
+cat(sprintf("Eligible candidates (pair_coreport >= %d and triplet_coreport >= %d): %d\n",
             min_pair_coreport, min_triplet_coreport, nrow(candidate_sheet)))
-cat("Suggested (matched 1:1):", sum(candidate_sheet$suggested), "\n")
+cat("Random selection seed:", negative_seed, "\n")
 print(candidate_sheet[, .N, by = match_strategy][order(-N)])

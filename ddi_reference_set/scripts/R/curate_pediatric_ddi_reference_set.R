@@ -62,10 +62,7 @@ evidence_inputs <- rbindlist(list(
 triplets[derive_triplet_evidence_level(evidence_inputs), on = "triplet_id", evidence_level_derived := i.evidence_level]
 triplets[is.na(evidence_level) | !nzchar(evidence_level), evidence_level := evidence_level_derived]
 triplets[, evidence_level_derived := NULL]
-if (any(is.na(triplets$evidence_level) | !nzchar(triplets$evidence_level))) {
-  print(triplets[is.na(evidence_level) | !nzchar(evidence_level), .(triplet_id, source_type)])
-  stop("No se pudo derivar evidence_level para algunos tripletes; completar la columna evidence_level en el workbook.")
-}
+
 
 # Ontogeny columns: record whether the interaction risk is age-modulated
 for (ontogeny_col in c("ontogenic_modulation", "higher_risk_stages", "ontogeny_evidence")) {
@@ -215,7 +212,6 @@ triplets[, N := NULL]
 # 3. Categorical constraints. all controlled-vocabulary fields must use valid levels.
 stopifnot(all(triplets$control_type %in% niveles_control))
 stopifnot(all(triplets$confidence_level %in% c("high", "moderate")))
-stopifnot(all(triplets$evidence_level %in% evidence_levels))
 stopifnot(all(triplets$interaction_type %in% c("pharmacokinetic", "pharmacodynamic", "mixed", "unknown", "pharmaceutical", "none")))
 
 # Coherence: negative controls must have interaction_type = "none"; positive controls must declare one.

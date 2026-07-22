@@ -139,13 +139,24 @@ especificidad. Requisitos:
 no-interaccion** (misma escala `high`/`moderate`).
 
 Para no construir los negativos a mano desde cero, `scripts/R/03_generate_negative_candidates.R`
-recombina el set positivo (matched 1:1) y filtra por coReporte pediatrico real en
-FAERS (del par y del triplete), emitiendo una planilla de **candidatos** con la
-evidencia de plausibilidad (`pair_coreport`, `triplet_coreport`) y flags de
-atribucion mono-farmaco (`single_drug_event_max`).
-Esos candidatos automatizan los pasos 1 (par plausible) y parte del 4 (evitar
-misclasificacion) de arriba, pero **no** son negativos hasta que el curador
-verifica la ausencia documentada (paso 2-3) y los carga en el workbook.
+recombina el set positivo con dos estrategias apareadas (`event_swap` y `drug_swap`,
+ambas presentes) y usa el coReporte pediatrico real en FAERS (del par y del
+triplete) **solo como piso de elegibilidad**, nunca para rankear. Entre los
+candidatos elegibles la seleccion es **aleatoria con semilla fija**
+(`negative_seed`), reproducible y sin sesgo por cantidades derivadas del desenlace
+(Kontsioti 2022: los negativos se sortean sin agregar sesgos por diseño). No hay
+columna `suggested`.
+
+`single_drug_event_max` (veces que el evento coocurre con un solo farmaco) se
+reporta **solo para estratificar** a posteriori (Kontsioti sugiere estratificar por
+el ADR mono-farmaco, no filtrar por el). **No** es criterio de descarte: la
+atribucion mono-farmaco (paso 4) se evalua contra etiquetas/compendios, no
+umbralando ese conteo de FAERS, que comparte celdas con el AC y su uso como filtro
+seria circular.
+
+Esos candidatos automatizan el paso 1 (par plausible y detectable), pero **no** son
+negativos hasta que el curador verifica la ausencia documentada (pasos 2-3) y la no
+atribucion mono-farmaco (paso 4) contra las fuentes, y los carga en el workbook.
 
 ## Modulacion ontogenica (opcional)
 
