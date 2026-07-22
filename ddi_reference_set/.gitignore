@@ -4,9 +4,16 @@
 # Curated data, evidence and results
 input/
 results/
-suggested/
 backups/
 reviews/
+
+# suggested/: track only methodology (SKILL.md, TEMPLATE.md, REVIEW_GUIDE.md);
+# curated dossiers and data stay local-only.
+suggested/**
+!suggested/**/
+!suggested/**/SKILL.md
+!suggested/**/TEMPLATE.md
+!suggested/REVIEW_GUIDE.md
 
 # dual_curation_validation: keep scripts + docs, drop its data and results
 dual_curation_validation/input/
