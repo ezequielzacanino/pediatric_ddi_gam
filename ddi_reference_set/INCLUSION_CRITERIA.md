@@ -7,9 +7,7 @@ prioriza especificidad y trazabilidad.
 
 Cada triplete es un **control positivo** o un **control negativo** (`control_type`).
 El dataset está armado en linea con Kontsioti et al.,
-*Pharmacoepidemiol Drug Saf* 2023;32:832-844 (que muestra que el marco AUC/PPV
-exige controles positivos y negativos, y que toda restriccion del set de
-evaluacion debe justificarse explicitamente).
+*Pharmacoepidemiol Drug Saf* 2023;32:832-844 .
 
 ## Que es un triplete
 
@@ -126,31 +124,24 @@ especificidad. Requisitos:
    listada en DDINTER 2.0/FDA/SmPC del par al <fecha>"), con la fecha de consulta.
 4. **Evitar misclasificacion.** No usar como negativo un par cuyo evento sea
    atribuible a un solo farmaco, ni pares para los que solo falta evidencia por
-   ser poco estudiados (ausencia de evidencia != evidencia de ausencia). Esta
-   cautela responde a la misclasificacion de negativos documentada en la
-   literatura (Hauben 2016).
+   ser poco estudiados (ausencia de evidencia != evidencia de ausencia).
 5. **Sin modulacion ontogenica.** `ontogenic_modulation` es `no` por definición.
 
 `confidence_level` en un negativo expresa la confianza en la **clasificacion como
 no-interaccion** (misma escala `high`/`moderate`).
 
-Para no construir los negativos a mano desde cero, `scripts/R/03_generate_negative_candidates.R`
-recombina el set positivo con dos estrategias apareadas (`event_swap` y `drug_swap`,
-ambas presentes) y usa el coReporte pediatrico real en FAERS (del par y del
-triplete) **solo como piso de elegibilidad**, nunca para rankear. Entre los
-candidatos elegibles la seleccion es **aleatoria con semilla fija**
-(`negative_seed`), reproducible y sin sesgo por cantidades derivadas del desenlace
-(Kontsioti 2022: los negativos se sortean sin agregar sesgos por diseño). No hay
-columna `suggested`.
+`scripts/R/03_generate_negative_candidates.R` recombina el set positivo con dos estrategias apareadas (`event_swap` y `drug_swap`) y usa el coReporte pediatrico real en FAERS (del par y del
+triplete) como **piso de elegibilidad**. Entre los
+candidatos elegibles se hace seleccion **aleatoria con semilla fija**
+(`negative_seed`).
 
 `single_drug_event_max` (veces que el evento coocurre con un solo farmaco) se
-reporta **solo para estratificar** a posteriori (Kontsioti sugiere estratificar por
-el ADR mono-farmaco, no filtrar por el). **No** es criterio de descarte: la
+reporta **solo para estratificar** a posteriori (Kontsioti sugiere estratificar por el ADR mono-farmaco, no filtrar por el). **No** es criterio de descarte: la
 atribucion mono-farmaco (paso 4) se evalua contra etiquetas/compendios, no
 umbralando ese conteo de FAERS, que comparte celdas con el AC y su uso como filtro
 seria circular.
 
-Esos candidatos automatizan el paso 1 (par plausible y detectable), pero **no** son
+Esos candidatos automatizan el paso 1 (tripletes plausible y detectable), pero **no** son
 negativos hasta que el curador verifica la ausencia documentada (pasos 2-3) y la no
 atribucion mono-farmaco (paso 4) contra las fuentes, y los carga en el workbook.
 
