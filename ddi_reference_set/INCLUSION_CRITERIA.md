@@ -46,10 +46,7 @@ por evento.
    mas alto de las fuentes; el curador puede sobreescribirlo.
 8. **Detectabilidad en FAERS.** El triplete completo
    `farmaco1 x farmaco2 x evento` debe tener **>= 1 coReporte pediatrico** en
-   FAERS (el par y el evento coocurren en al menos un caso). Sin coReporte del
-   triplete la celda co-expuesta-con-evento del benchmark queda vacia: un positivo
-   nunca puede ser verdadero positivo y un negativo es un verdadero negativo
-   trivial que infla la especificidad. El coReporte del *par* (req. 2) es
+   FAERS (el par y el evento coocurren en al menos un caso). El coReporte del *par* (req. 2) es
    necesario pero **no** suficiente: hay que verificar el evento curado. Chequear
    con `scripts/R/faers_triplet_coreport.R` (imprime el total y el desglose por
    etapa NICHD sin cargar el dataset) y rechazar el triplete si el total es 0. El
