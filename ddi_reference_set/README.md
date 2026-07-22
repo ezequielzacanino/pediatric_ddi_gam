@@ -1,10 +1,8 @@
 # DDI Reference Set
 
-Construye el set de referencia curado pediatrico de interacciones
-farmaco-farmaco-evento (triplete: farmaco1 x farmaco2 x evento MedDRA). Cada
+Construye el set de referencia curado pediatrico de interacciones droga-droga. Cada
 triplete es un **control positivo** (interaccion curada) o **negativo** (par/evento
-sin interaccion documentada), lo que permite estimar especificidad/AUC/PPV ademas
-de sensibilidad. Produce el dataset curado que
+sin interaccion documentada), con evidencia específica en población pediátrica. Produce el dataset curado que
 consume `gam_benchmark/`. Los criterios de evidencia (incluidos los del nivel de
 evidencia y los controles negativos) estan en
 [`INCLUSION_CRITERIA.md`](INCLUSION_CRITERIA.md); el procedimiento paso a paso para
@@ -15,28 +13,21 @@ curar positivos y negativos esta en [`CURATION_WORKFLOW.md`](CURATION_WORKFLOW.m
 Desde la raiz de `ddi_reference_set/`:
 
 ```powershell
-# Solo la primera vez (o para regenerar la planilla): construye el .xlsx vacio
-# con sus dropdowns (sin precargar tripletes).
+# Construye (o regenera) workbook .xlsx vacio con sus dropdowns (sin precargar tripletes).
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\00_build_input_template.R
 
-# Propone candidatos a control positivo a partir de CRESCENDDI (pares con IDD
-# documentada en adultos) intersecados con coReporte pediatrico FAERS. Es el punto
-# de partida de la curacion de positivos: el agente trabaja la lista, el humano cura.
+# Genera plantilla de candidatos positivos a partir de CRESCENDDI intersecados con coReporte pediatrico FAERS.
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\01_generate_positive_candidates.R
 
-# Consolidacion: cada vez que se edita la planilla, mapea y produce los CSV de
-# salida. Corre despues de curar positivos y otra vez despues de curar negativos.
+# Consolida plantilla. Mapea y produce los CSV de salida. Corre despues de curar positivos y otra vez despues de curar negativos.
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\curate_pediatric_ddi_reference_set.R
 
-# Propone candidatos a control negativo (recombinacion del set positivo ya
-# consolidado + coReporte pediatrico FAERS) para el tamiz manual del curador.
-# Los negativos aceptados vuelven al workbook y se consolidan con el script de
-# arriba.
+# Genera plantilla de candidatos negativos, a partir de recombinación del set positivo y chequeo de presencia en FAERS.
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\03_generate_negative_candidates.R
 ```
 
 El orden de corrida completo esta en
-[`CURATION_WORKFLOW.md`](CURATION_WORKFLOW.md) (seccion "Mapa del flujo").
+[`CURATION_WORKFLOW.md`](CURATION_WORKFLOW.md) (seccion "Mapa de flujo").
 
 ## Como agregar tripletes
 
@@ -83,8 +74,7 @@ El dataset final que se usará en `gam_benchmark` es el de `results/curated_pedi
   de CRESCENDDI (tiers Micromedex `Established`/`Probable`) con el coReporte
   pediatrico FAERS y emite `results/positive_control_candidates/` con la cobertura
   por etapa NICHD y el evento adulto como pista. Es la lista-guia de la que parte
-  la curacion de positivos (en vez de elegir pares de forma libre). No escribe en
-  el workbook.
+  la curacion de positivos (en vez de elegir pares de forma libre).
 - `scripts/R/curate_pediatric_ddi_reference_set.R`: lee la planilla, resuelve
   ATC y eventos contra el vocabulario y escribe los outputs. Es el paso de
   consolidacion: corre despues de cada edicion del workbook, tanto al curar
@@ -94,8 +84,7 @@ El dataset final que se usará en `gam_benchmark` es el de `results/curated_pedi
   pediatrico real en FAERS y emite `results/negative_control_candidates/` con
   evidencia de plausibilidad y flags de atribucion mono-farmaco. Automatiza los
   pasos 1-2 del proceso; el tamiz contra compendios y la aceptacion siguen siendo
-  curacion manual. No escribe en el workbook. Los negativos son parte del set: sin
-  ellos el benchmark no puede estimar especificidad/PPV/NPV/AUC.
+  curacion manual.
 - `input/`: planilla de entrada curada a mano.
 - `results/`: outputs generados.
 
