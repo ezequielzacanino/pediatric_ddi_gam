@@ -127,10 +127,9 @@ ausencia", Hauben 2016)..
 Produce `results/negative_control_candidates/negative_control_candidates.csv`:
 recombinaciones apareadas del set positivo con dos estrategias (`event_swap` y
 `drug_swap`, ambas presentes). El coReporte pediatrico real en FAERS (del par y del
-triplete) se usa **solo como piso de elegibilidad**; entre los elegibles la lista
+triplete) se usa **como piso de elegibilidad**; entre los elegibles la lista
 sale **ordenada al azar con semilla fija** (`negative_seed`), sin columna
-`suggested`. Trabajar la lista de arriba hacia abajo, sin reordenar: ese orden es la
-seleccion reproducible y sin sesgo de Kontsioti. Columnas a leer por fila (contexto,
+`suggested`. Trabajar la lista de arriba hacia abajo, sin reordenar. Columnas a leer por fila (contexto,
 no criterios de descarte):
 
 - `match_strategy` + `known_interacting_pair`: `drug_swap` = par nuevo (`FALSE`);
@@ -151,8 +150,7 @@ no criterios de descarte):
 2. El evento es un ADR conocido de *cualquiera* de los dos farmacos por separado
    (decidir por la **etiqueta** de cada farmaco; `single_drug_event_max` es solo la
    pista de FAERS que motiva la consulta, no la prueba).
-3. El par casi no se coadministra en pediatria o solo "falta evidencia" por ser
-   poco estudiado (no es verdadero negativo).
+3. El par casi no se coadministra en pediatria o solo "falta evidencia" por ser poco estudiado (no es verdadero negativo).
 
 ### 2c. Cargar el negativo aceptado
 
