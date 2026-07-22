@@ -6,7 +6,7 @@
 # Produces reviews/agent_review.xlsx, 
 # Human review workbook of all triplets the agent curated. 
 
-# The conceptual rubric and the literature mapping in suggested/REVIEW_GUIDE.md.
+# The conceptual rubric and the literature mapping in REVIEW_GUIDE.md.
 #
 # Data sheets are seeded from the input workbook 
 # Re-run only to (re)generate the empty/seeded workbook
@@ -35,12 +35,12 @@ if (file.exists(output_xlsx) && !overwrite_existing) {
 # 1. Seed the worklist from the triplets registered in the input workbook
 ################################################################################
 # The agent records every curated triplet as a row in the 'triplets' sheet
-# For each triplet_id, locate its dossier under suggested/{positivos,negativos} by id prefix
+# For each triplet_id, locate its dossier under agent/workspace/{positivos,negativos} by id prefix
 # A missing dossier leaves the path blank, which itself flags the omission for the reviewer.
 
 locate_dossier <- function(triplet_id) {
   hits <- list.files(
-    c("suggested/positivos", "suggested/negativos"),
+    c("agent/workspace/positivos", "agent/workspace/negativos"),
     pattern = sprintf("^%s_.*\\.md$", triplet_id),
     full.names = TRUE
   )
@@ -64,7 +64,7 @@ setorder(seed, triplet_id)
 review_cols <- c(
   "triplet_id", "dossier", "reviewer", "review_date", "review_minutes",
   "verdict", "verdict_reason",
-  # performance rubric (see suggested/REVIEW_GUIDE.md)
+  # performance rubric (see REVIEW_GUIDE.md)
   "sources_all_real",        # A: no fabricated citations (yes/no)
   "metadata_correct",        # A: authors/year/journal/title match the real source
   "all_claims_supported",    # B: each attributed claim is actually in the source
@@ -155,7 +155,7 @@ legend <- data.table(
       "single_drug_attribution, wrong_meddra_mapping, wrong_atc, omitted_evidence,",
       "faers_error, miscalibrated_confidence, misclassified_negative, none"
     ),
-    "see suggested/REVIEW_GUIDE.md (ALCE citation precision/recall; AIS; Tam 2024 npj Digit Med; BMC Med Inform Decis Mak 2025)"
+    "see REVIEW_GUIDE.md (ALCE citation precision/recall; AIS; Tam 2024 npj Digit Med; BMC Med Inform Decis Mak 2025)"
   )
 )
 
@@ -219,6 +219,6 @@ cat("Seeded triplets (worklist rows):", nrow(seed), "\n")
 if (nrow(seed)) cat("  ", paste(seed$triplet_id, collapse = ", "), "\n")
 missing_dossier <- seed[is.na(dossier), triplet_id]
 if (length(missing_dossier)) {
-  cat("Triplets without a dossier found under suggested/:",
+  cat("Triplets without a dossier found under agent/workspace/:",
       paste(missing_dossier, collapse = ", "), "\n")
 }

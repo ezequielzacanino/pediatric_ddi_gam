@@ -7,13 +7,11 @@ results/
 backups/
 reviews/
 
-# suggested/: track only methodology (SKILL.md, TEMPLATE.md, REVIEW_GUIDE.md);
-# curated dossiers and data stay local-only.
-suggested/**
-!suggested/**/
-!suggested/**/SKILL.md
-!suggested/**/TEMPLATE.md
-!suggested/REVIEW_GUIDE.md
+# agent/: track methodology (skills, tools, README);
+# curated dossiers under workspace/ stay local-only.
+agent/workspace/**
+!agent/workspace/**/
+!agent/workspace/**/.gitkeep
 
 # dual_curation_validation: keep scripts + docs, drop its data and results
 dual_curation_validation/input/

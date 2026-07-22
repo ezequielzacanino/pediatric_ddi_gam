@@ -1,7 +1,7 @@
 # Guia de revision humana 
 
 Procedimiento y rubro para auditar los dossiers que el
-**agente** produce al curar tripletes (`suggested/positivos/`, `suggested/negativos/`).
+**agente** produce al curar tripletes (`agent/workspace/positivos/`, `agent/workspace/negativos/`).
 
 Evaluar:
 
@@ -26,7 +26,7 @@ Documentar:
    `triplets` del workbook de input (`triplet_id` + ruta del dossier precargados;
    la ruta queda vacia si el triplete se cargo sin su dossier, lo que marca la
    omision).
-2. Para cada fila/triplete, abrir su dossier (`suggested/.../<triplet_id>_*.md`).
+2. Para cada fila/triplete, abrir su dossier (`agent/workspace/.../<triplet_id>_*.md`).
 3. **Verificar cada fuente en la hoja `sources`**, completar
    los desplegables (`exists`/`metadata_ok`/`supports_claim`/`relevant`/
    `pediatric`).
@@ -88,7 +88,7 @@ son enteros y permiten calcular tasas a nivel de cita, no solo de triplete.
 
 ## Negativos
 
-Para un control negativo (`suggested/negativos/`), el objeto de la evidencia es la
+Para un control negativo (`agent/workspace/negativos/`), el objeto de la evidencia es la
 **ausencia documentada de interaccion**, no su presencia. Adaptaciones (misma
 hoja `review`, reinterpretando dos columnas):
 

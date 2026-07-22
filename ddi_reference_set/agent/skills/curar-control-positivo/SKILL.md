@@ -28,11 +28,11 @@ evidencia es solo adulta/teorica, NO es positivo (ver Exclusiones).
 - Acceso a: PubMed (servidor MCP, tools `search_articles`/`get_article_metadata`),
   etiquetas FDA via el servidor MCP `biomcp` (`openfda_label_searcher`/`openfda_label_getter`)
   y FAERS (`openfda_adverse_searcher`), ensayos (`trial_searcher`); DDInter del par como
-  soporte mecanistico via `scripts/R/ddinter_lookup.R` (pair-level, nunca primaria);
+  soporte mecanistico via `agent/tools/ddinter_lookup.R` (pair-level, nunca primaria);
   y, si esta disponible, el coReporte FAERS por etapa NICHD (coadministracion real).
 - Vocabulario del workbook: los desplegables `ref_atc` (formato `sustancia; via`)
   y `ref_llt/ref_pt/ref_hlt/ref_hlgt`. Resolver y validar el string exacto del
-  desplegable con `scripts/R/vocab_lookup.R` (ver Paso 5), sin cargar las hojas enteras.
+  desplegable con `agent/tools/vocab_lookup.R` (ver Paso 5), sin cargar las hojas enteras.
 
 ## Procedimiento (ejecutar en orden)
 
@@ -104,7 +104,7 @@ Pegar el coReporte por etapa NICHD. Regla por defecto: aceptar solo si todas las
 etapas tienen `coadmin_reports >= 1`, salvo instruccion explicita. Documentar.
 Una vez mapeado el evento MedDRA, verificar que el triplete es detectable ejecutando desde ddi_reference_set/:
 
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' scripts\R\faers_triplet_coreport.R --drug1 "<drug1; via>" --drug2 "<drug2; via>" --event-pt "<PT>"
+& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' agent\tools\faers_triplet_coreport.R --drug1 "<drug1; via>" --drug2 "<drug2; via>" --event-pt "<PT>"
 
 Si tiene 0 reportes de triplete, buscar si es remapeable a otro evento detectable o descartar triplete
 
@@ -112,9 +112,9 @@ Si tiene 0 reportes de triplete, buscar si es remapeable a otro evento detectabl
 Resolver el string exacto del desplegable con el helper (devuelve solo coincidencias,
 sin volcar las hojas), desde `ddi_reference_set/`:
 
-    Rscript scripts/R/vocab_lookup.R atc "<sustancia>"        # buscar el valor ATC 5th
-    Rscript scripts/R/vocab_lookup.R pt  "<evento>"           # buscar el PT MedDRA
-    Rscript scripts/R/vocab_lookup.R pt  "<termino>" --exact  # validar antes de escribir
+    Rscript agent/tools/vocab_lookup.R atc "<sustancia>"        # buscar el valor ATC 5th
+    Rscript agent/tools/vocab_lookup.R pt  "<evento>"           # buscar el PT MedDRA
+    Rscript agent/tools/vocab_lookup.R pt  "<termino>" --exact  # validar antes de escribir
 
 - `drug1`/`drug2`: copiar EXACTAMENTE el valor de `ref_atc` que devuelve el helper
   (`sustancia; via`). No inventar variantes.
@@ -136,8 +136,8 @@ y completar `higher_risk_stages` (subconjunto de las 7 etapas NICHD) y
 `ontogeny_evidence`. Si no se evaluo, dejar `unknown`.
 
 ### Paso 8 — Documentar y cargar
-1. Llenar el manual de evidencia con `suggested/positivos/TEMPLATE.md` y guardarlo
-   como `suggested/positivos/<triplet_id>_<drug1>_<drug2>_<evento>.md`.
+1. Llenar el manual de evidencia con `agent/skills/curar-control-positivo/TEMPLATE.md` y guardarlo
+   como `agent/workspace/positivos/<triplet_id>_<drug1>_<drug2>_<evento>.md`.
 2. Asignar un `triplet_id` estable y unico (p.ej. siguiente `Txxx` libre; nunca
    reusar ids retirados).
 3. Hoja `triplets`: una fila con `control_type = positive`, los valores de

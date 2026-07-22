@@ -28,7 +28,7 @@ o puede tener interacción real pero para otro evento. `interaction_type = none`
 ## Alcance
 
 La skill termina en el workbook: los entregables son el manual en
-`suggested/negativos/` y las filas cargadas en `triplets` y `sources`. La
+`agent/workspace/negativos/` y las filas cargadas en `triplets` y `sources`. La
 consolidacion (`scripts/R/curate_pediatric_ddi_reference_set.R`) corre por cuenta del humano, que tiene R y el vocabulario OMOP local, y es la unica que
 escribe `results/`. Todos los requerimientos del skill se resuelven leyendo el CSV de
 candidatos, el workbook y los compendios: la validacion del script se deja para
@@ -40,10 +40,10 @@ esa corrida y no se replica en otro lenguaje.
   disponible en el repo; la skill lo lee.
 - `input/ddi_reference_input.xlsx`: ademas de `triplets` y `sources`, lleva el
   vocabulario en las hojas `ref_atc`, `ref_llt`, `ref_pt`, `ref_hlt`, `ref_hlgt`
-  y `ref_nichd`. La verificacion de nombres se hace con `scripts/R/vocab_lookup.R`
+  y `ref_nichd`. La verificacion de nombres se hace con `agent/tools/vocab_lookup.R`
   (devuelve solo coincidencias; no volcar las hojas enteras). Ver Paso 4.
 - Compendios de interacciones:
-  - DB de IDD: `scripts/R/ddinter_lookup.R` (DDInter local, CSVs en `input/ddinter/`).
+  - DB de IDD: `agent/tools/ddinter_lookup.R` (DDInter local, CSVs en `input/ddinter/`).
     Es **pair-level**: responde si el par tiene interaccion documentada y su `Level`,
     no por evento. Ausencia del par = evidencia fuerte de negativo; si figura, juzgar
     contra la etiqueta si aplica a ESTE evento.
@@ -80,8 +80,8 @@ par) y la etiqueta FDA via `biomcp` `openfda_label_searcher` (seccion Drug
 Interactions de cada farmaco); sumar SmPC/PubMed cuando aporte. Consulta DDInter,
 desde `ddi_reference_set/`:
 
-    Rscript scripts/R/ddinter_lookup.R "<drug1; via>" "<drug2; via>"
-    Rscript scripts/R/ddinter_lookup.R --find "<sustancia>"   # si el nombre ATC no matchea
+    Rscript agent/tools/ddinter_lookup.R "<drug1; via>" "<drug2; via>"
+    Rscript agent/tools/ddinter_lookup.R --find "<sustancia>"   # si el nombre ATC no matchea
 
 DESCARTAR si se cumple cualquiera:
 1. Existe interaccion del par documentada **para ese evento** en
@@ -128,8 +128,8 @@ Las primeras 23 columnas del CSV son el esquema de la hoja `triplets` y ya traen
 valores de desplegable validos: copiar farmacos y evento desde la fila del
 candidato. Confirmar cada valor con el helper, desde `ddi_reference_set/`:
 
-    Rscript scripts/R/vocab_lookup.R atc "<sustancia; via>" --exact
-    Rscript scripts/R/vocab_lookup.R pt  "<evento>" --exact
+    Rscript agent/tools/vocab_lookup.R atc "<sustancia; via>" --exact
+    Rscript agent/tools/vocab_lookup.R pt  "<evento>" --exact
 
 ### Paso 5 — Asignar confianza en la clasificacion
 `confidence_level` = confianza en la clasificacion **como no-interaccion**:
@@ -141,8 +141,8 @@ candidato. Confirmar cada valor con el helper, desde `ddi_reference_set/`:
 que documenta la ausencia.
 
 ### Paso 6 — Documentar y cargar
-1. Llenar el manual con `suggested/negativos/TEMPLATE.md` y guardarlo como
-   `suggested/negativos/<triplet_id>_<drug1>_<drug2>_<evento>.md`.
+1. Llenar el manual con `agent/skills/curar-control-negativo/TEMPLATE.md` y guardarlo como
+   `agent/workspace/negativos/<triplet_id>_<drug1>_<drug2>_<evento>.md`.
 2. Asignar un `triplet_id` **estable y propio** (p.ej. `N001`, `N002`...). **No
    reusar el `Nxxx` posicional del CSV**, que se renumera en cada corrida.
 3. Hoja `triplets`: `control_type = negative`, `interaction_type = none`,

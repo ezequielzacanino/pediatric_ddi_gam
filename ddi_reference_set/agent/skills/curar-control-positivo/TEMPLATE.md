@@ -1,7 +1,7 @@
 # Manual de evidencia - control POSITIVO
 
-<!-- Plantilla. Procedimiento en suggested/positivos/SKILL.md. Guardar como
-     suggested/positivos/<triplet_id>_<drug1>_<drug2>_<evento>.md
+<!-- Plantilla. Procedimiento en agent/skills/curar-control-positivo/SKILL.md. Guardar como
+     agent/workspace/positivos/<triplet_id>_<drug1>_<drug2>_<evento>.md
      Notacion: {a | b} = valores permitidos; <...> = completar; (vacio) = en blanco. -->
 
 ## Identificacion
@@ -32,7 +32,7 @@
 
 ## Coadministracion FAERS por etapa NICHD
 
-<!-- salida de scripts/R/faers_triplet_coreport.R; por defecto todas las etapas >= 1 -->
+<!-- salida de agent/tools/faers_triplet_coreport.R; por defecto todas las etapas >= 1 -->
 
 | nichd | coadmin_reports |
 |---|---:|
@@ -52,7 +52,7 @@
 |---|---|---|---|
 | <AAAA-MM-DD> | FDA label (biomcp) | <seccion> | <...> |
 | <AAAA-MM-DD> | PubMed (biomcp) | <query> | <...> |
-| <AAAA-MM-DD> | DDInter (scripts/R/ddinter_lookup.R) | <par> | <...> |
+| <AAAA-MM-DD> | DDInter (agent/tools/ddinter_lookup.R) | <par> | <...> |
 
 ## Fuentes (triple-match edad + par + evento)
 
@@ -77,7 +77,7 @@
 - ontogeny_evidence: (vacio | <...>)
 - confidence_level: {high | moderate}
 - rationale: <...>
-- comments: suggested/positivos/<archivo>.md
+- comments: agent/workspace/positivos/<archivo>.md
 
 ## Filas para `sources`
 

@@ -13,7 +13,7 @@ source("00_functions.R", local = TRUE)
 library(openxlsx)
 
 # Guard against destroying manual edits. Flip to TRUE only for a clean rebuild.
-overwrite_existing <- FALSE
+overwrite_existing <- TRUE
 
 input_dir <- "./input"
 output_xlsx <- file.path(input_dir, "ddi_reference_input.xlsx")

@@ -85,6 +85,14 @@ El dataset final que se usará en `gam_benchmark` es el de `results/curated_pedi
   evidencia de plausibilidad y flags de atribucion mono-farmaco. Automatiza los
   pasos 1-2 del proceso; el tamiz contra compendios y la aceptacion siguen siendo
   curacion manual.
+- `agent/`: carpeta autocontenida del agente de curacion (contexto + trabajo);
+  ver [`agent/README.md`](agent/README.md).
+  - `agent/skills/`: procedimiento paso a paso por tipo de control
+    (`SKILL.md` + `TEMPLATE.md` de positivos y negativos).
+  - `agent/tools/`: helpers que corre el agente durante la curacion
+    (`vocab_lookup.R`, `ddinter_lookup.R`, `faers_triplet_coreport.R`).
+  - `agent/workspace/{positivos,negativos}/`: dossiers de evidencia que produce
+    el agente (local-only).
 - `input/`: planilla de entrada curada a mano.
 - `results/`: outputs generados.
 

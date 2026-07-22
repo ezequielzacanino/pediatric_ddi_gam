@@ -1,7 +1,7 @@
 # Manual de evidencia - control NEGATIVO
 
-<!-- Plantilla. Procedimiento en suggested/negativos/SKILL.md. Guardar como
-     suggested/negativos/<triplet_id>_<drug1>_<drug2>_<evento>.md
+<!-- Plantilla. Procedimiento en agent/skills/curar-control-negativo/SKILL.md. Guardar como
+     agent/workspace/negativos/<triplet_id>_<drug1>_<drug2>_<evento>.md
      Notacion: {a | b} = valores permitidos; <...> = completar; (vacio) = en blanco. -->
 
 ## Identificacion
@@ -42,7 +42,7 @@
 
 | fecha | fuente/base | query o documento | resultado |
 |---|---|---|---|
-| <AAAA-MM-DD> | DDInter (scripts/R/ddinter_lookup.R) | <par> | <...> |
+| <AAAA-MM-DD> | DDInter (agent/tools/ddinter_lookup.R) | <par> | <...> |
 | <AAAA-MM-DD> | FDA label drug1 (biomcp) | <seccion> | <...> |
 | <AAAA-MM-DD> | FDA label drug2 (biomcp) | <seccion> | <...> |
 | <AAAA-MM-DD> | PubMed (biomcp) | <query> | <...> |
@@ -70,7 +70,7 @@
 - source_year: <AAAA>
 - source_type: compendia_and_labels
 - rationale: <...>
-- comments: suggested/negativos/<archivo>.md
+- comments: agent/workspace/negativos/<archivo>.md
 
 ## Filas para `sources`
 

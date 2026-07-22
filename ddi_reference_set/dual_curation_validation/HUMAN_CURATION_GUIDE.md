@@ -2,7 +2,7 @@
 
 Procedimiento paso a paso para el **curador humano** del ejercicio de validación
 dual. Es la **contraparte humana del skill `curar-control-positivo`**
-(`../suggested/positivos/SKILL.md`): ambos curadores —humano y agente— deben correr
+(`../agent/skills/curar-control-positivo/SKILL.md`): ambos curadores —humano y agente— deben correr
 **el mismo SOP** para que el acuerdo medido refleje diferencias de juicio y no de
 procedimiento. Los criterios de aceptación (el *qué*) viven en
 [`../INCLUSION_CRITERIA.md`](../INCLUSION_CRITERIA.md) y no se repiten acá: esta guía

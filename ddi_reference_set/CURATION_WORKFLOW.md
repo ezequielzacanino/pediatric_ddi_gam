@@ -58,9 +58,9 @@ El agente de curacion espera el conector MCP `biomcp` (declarado en `.mcp.json`)
 que aporta etiquetas FDA (`openfda_label_searcher`/`openfda_label_getter`), FAERS
 (`openfda_adverse_searcher`), PubMed (`article_searcher`) y ensayos
 (`trial_searcher`); PubMed tambien via el MCP `search_articles`. La DB de
-interacciones es **DDInter local**: `scripts/R/ddinter_lookup.R` sobre los CSV en
+interacciones es **DDInter local**: `agent/tools/ddinter_lookup.R` sobre los CSV en
 `input/ddinter/` (pair-level; ausencia del par = evidencia de negativo). El
-vocabulario del workbook se consulta con `scripts/R/vocab_lookup.R` (devuelve solo
+vocabulario del workbook se consulta con `agent/tools/vocab_lookup.R` (devuelve solo
 coincidencias, sin cargar las hojas de referencia enteras).
 
 ## 1. Curar un control POSITIVO
@@ -88,7 +88,7 @@ para los pares de CRESCENDDI). Requiere la planilla CRESCENDDI ya descargada en
 
 Trabajar la lista de arriba hacia abajo hasta alcanzar el objetivo (50
 positivos). Por cada candidato, el **agente**: busca la evidencia pediatrica
-(skill `ddi-positive-curation`), escribe el dossier en `suggested/positivos/`,
+(skill `ddi-positive-curation`), escribe el dossier en `agent/workspace/positivos/`,
 verifica la coadministracion FAERS por etapa y redacta el borrador de las filas
 del workbook. El **humano cura** ese borrador (acepta/edita/descarta).
 

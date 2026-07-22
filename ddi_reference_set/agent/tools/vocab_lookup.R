@@ -7,7 +7,7 @@
 # candidate drug/event can be resolved to its exact workbook value cheaply.
 #
 # Run from the subproject root:
-#   Rscript scripts/R/vocab_lookup.R <level> <query> [--exact] [--max N]
+#   Rscript agent/tools/vocab_lookup.R <level> <query> [--exact] [--max N]
 #
 #   level : atc | llt | pt | hlt | hlgt | nichd
 #   query : text to match (case/space/underscore-insensitive substring)

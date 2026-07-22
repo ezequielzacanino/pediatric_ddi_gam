@@ -46,7 +46,7 @@ por evento.
    `farmaco1 x farmaco2 x evento` debe tener **>= 1 coReporte pediatrico** en
    FAERS (el par y el evento coocurren en al menos un caso). El coReporte del *par* (req. 2) es
    necesario pero **no** suficiente: hay que verificar el evento curado. Chequear
-   con `scripts/R/faers_triplet_coreport.R` (imprime el total y el desglose por
+   con `agent/tools/faers_triplet_coreport.R` (imprime el total y el desglose por
    etapa NICHD sin cargar el dataset) y rechazar el triplete si el total es 0. El
    conteo se hace a nivel **MedDRA PT** (el mas fino): es el gate estricto, porque
    un coReporte a PT tambien cuenta en su HLT/HLGT, de modo que >= 1 a PT garantiza
@@ -102,7 +102,7 @@ el mapeo MedDRA se curan igual que cualquier positivo (requisitos de arriba).
 Cobertura FAERS por etapa: el par debe estar coadministrado en **>= 2 etapas
 NICHD**. No se exige cobertura total. Esta cobertura es del *par*; una vez elegido
 el evento pediatrico, verificar ademas la detectabilidad del **triplete** (req. 8)
-con `scripts/R/faers_triplet_coreport.R`, porque `01` cuenta el par, no el evento.
+con `agent/tools/faers_triplet_coreport.R`, porque `01` cuenta el par, no el evento.
 
 ## Controles negativos
 

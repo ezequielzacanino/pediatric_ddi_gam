@@ -11,11 +11,11 @@
 # The event is counted at MedDRA PT (the finest level). 
 #
 # Run from ddi_reference_set/. By id (no vocabulary read):
-#   Rscript scripts/R/faers_triplet_coreport.R \
+#   Rscript agent/tools/faers_triplet_coreport.R \
 #     --drug1-id <atc_concept_id> --drug2-id <atc_concept_id> --event-id <meddra_pt_concept_id>
 # By name (resolves through the OMOP vocabulary exactly like the curation script, so ids
 # match the ones the pipeline assigns):
-#   Rscript scripts/R/faers_triplet_coreport.R \
+#   Rscript agent/tools/faers_triplet_coreport.R \
 #     --drug1 "methotrexate; systemic" --drug2 "trimethoprim; systemic" \
 #     --event-pt "Bone marrow depression"
 # The event flag is --event-id (a PT concept id) or one of

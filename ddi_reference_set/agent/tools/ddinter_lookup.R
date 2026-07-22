@@ -10,8 +10,8 @@
 # http://ddinter.scbdd.com/static/media/download/ddinter_downloads_code_<ATC>.csv
 #
 # Run from the subproject root:
-#   Rscript scripts/R/ddinter_lookup.R "<drug1>" "<drug2>"   # pair check
-#   Rscript scripts/R/ddinter_lookup.R --find "<name>"       # resolve DDInter name
+#   Rscript agent/tools/ddinter_lookup.R "<drug1>" "<drug2>"   # pair check
+#   Rscript agent/tools/ddinter_lookup.R --find "<name>"       # resolve DDInter name
 #
 # Accepts the workbook ATC format ("sustancia; via"): only the substance (text
 # before ";") is used for matching.
