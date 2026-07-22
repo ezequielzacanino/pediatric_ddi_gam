@@ -61,9 +61,7 @@ mismo par con distintos eventos), paginados por un cursor reproducible. Desde
 
     Rscript scripts/R/negative_candidate_batch.R --start <cursor> [--n <count>]
 
-El harness expone solo las columnas de contexto/elegibilidad y **omite** los conteos
-mono-farmaco (`single_drug_event_max`, `evt_support_*`): la seleccion la rige el
-cursor, no una cantidad derivada del desenlace. Saltea tripletes ya presentes en el
+El harness expone solo las columnas de contexto/elegibilidad. Saltea tripletes ya presentes en el
 workbook e imprime el cursor siguiente para continuar la pasada. Columnas entregadas:
 - `match_strategy` + `known_interacting_pair`: `drug_swap` = par nuevo (`FALSE`, sin
   interaccion conocida para ningun evento); `event_swap` con `TRUE` = el par interactua

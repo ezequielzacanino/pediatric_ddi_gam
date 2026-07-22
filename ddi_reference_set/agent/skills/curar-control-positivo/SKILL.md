@@ -41,7 +41,16 @@ Formular: "La coadministracion pediatrica de `drug1` + `drug2` causa o aumenta e
 riesgo de `evento` por una IDD". Identificar el mecanismo plausible
 (`pharmacokinetic`, `pharmacodynamic`, `mixed`, `pharmaceutical`, `unknown`).
 
-### Paso 2 — Busqueda de evidencia (irreductible)
+### Paso 2 — Verificacion FAERS por etapa
+Pegar el coReporte por etapa NICHD. Regla por defecto: aceptar solo si todas las
+etapas tienen `coadmin_reports >= 1`, salvo instruccion explicita. Documentar.
+Una vez mapeado el evento MedDRA, verificar que el triplete es detectable ejecutando desde ddi_reference_set/:
+
+& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' agent\tools\faers_triplet_coreport.R --drug1 "<drug1; via>" --drug2 "<drug2; via>" --event-pt "<PT>"
+
+Si tiene 0 reportes de triplete, buscar si es remapeable a otro evento detectable o descartar triplete
+
+### Paso 3 — Busqueda de evidencia (irreductible)
 Buscar y registrar (fecha + query + resultado) en al menos: etiqueta FDA (biomcp
 `openfda_label_searcher`, secciones Drug Interactions y Pediatric use) y PubMed
 (`search_articles`). DDInter (`ddinter_lookup.R`) y ensayos (`trial_searcher`)
@@ -54,7 +63,7 @@ aportan mecanismo/soporte, **nunca** como primaria. Priorizar evidencia
   reportes de caso sirven solo como soporte salvo que sean la unica evidencia
   pediatrica con dechallenge/rechallenge y mecanismo claro.
 
-### Paso 2b — Gate de integridad de citas (anti-alucinacion, IRREDUCTIBLE)
+### Paso 3b — Gate de integridad de citas (anti-alucinacion, IRREDUCTIBLE)
 Ninguna cita se acepta sin pasar este gate. Aplica a toda fuente del dossier y de la
 hoja `sources`. Su objetivo es eliminar el modo de fallo tipico de un LLM: inventar o
 recordar citas, asignar un DOI que apunta a otro trabajo, o presentar evidencia adulta o
@@ -88,8 +97,7 @@ generica como si respaldara un triplete pediatrico especifico.
 > cada DOI resuelve al titulo escrito; (iii) ninguna afirmacion pediatrica se apoya en
 > fuente adulta o generica. Marcar y **eliminar** lo que no cumpla. El numero objetivo nunca justifica relajar el gate.
 
-
-### Paso 3 — Filtro de criterios (todos obligatorios)
+### Paso 4 — Filtro de criterios (todos obligatorios)
 Rechazar si falla cualquiera:
 1. Poblacion < 21 anos con confirmacion directa del par (no extrapolacion adulta).
 2. Coadministracion de **ambos** farmacos documentada; ambos resuelven a ATC 5th.
@@ -98,15 +106,6 @@ Rechazar si falla cualquiera:
 5. Evento mapeable a MedDRA (LLT/PT/HLT/HLGT del desplegable).
 6. >= 1 fuente trazable (PMID/DOI o URL estable) en `sources` que **pasa el gate del
    Paso 2b** (procedencia verificada + frase textual + triple-match edad/par/evento).
-
-### Paso 4 — Verificacion FAERS por etapa
-Pegar el coReporte por etapa NICHD. Regla por defecto: aceptar solo si todas las
-etapas tienen `coadmin_reports >= 1`, salvo instruccion explicita. Documentar.
-Una vez mapeado el evento MedDRA, verificar que el triplete es detectable ejecutando desde ddi_reference_set/:
-
-& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' agent\tools\faers_triplet_coreport.R --drug1 "<drug1; via>" --drug2 "<drug2; via>" --event-pt "<PT>"
-
-Si tiene 0 reportes de triplete, buscar si es remapeable a otro evento detectable o descartar triplete
 
 ### Paso 5 — Mapeo a vocabulario
 Resolver el string exacto del desplegable con el helper (devuelve solo coincidencias,
@@ -144,7 +143,6 @@ y completar `higher_risk_stages` (subconjunto de las 7 etapas NICHD) y
    desplegable, `interaction_type` real (nunca `none`), `mechanism`,
    `confidence_level`, y opcionalmente `evidence_level`.
 4. Hoja `sources`: >= 1 fila con el mismo `triplet_id` (PMID/DOI o URL + cita).
-5. Correr `scripts/R/curate_pediatric_ddi_reference_set.R` y resolver errores.
 
 ## Exclusiones (rechazo automatico)
 - Evidencia solo adulta sin confirmacion pediatrica del par.
