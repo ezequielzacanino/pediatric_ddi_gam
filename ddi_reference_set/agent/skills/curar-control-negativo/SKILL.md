@@ -42,6 +42,12 @@ esa corrida y no se replica en otro lenguaje.
   vocabulario en las hojas `ref_atc`, `ref_llt`, `ref_pt`, `ref_hlt`, `ref_hlgt`
   y `ref_nichd`. La verificacion de nombres se hace con `agent/tools/vocab_lookup.R`
   (devuelve solo coincidencias; no volcar las hojas enteras). Ver Paso 4.
+- Set ya curado: `agent/workspace/curated_index.tsv` (triplet_id, par, evento y fuente de los
+  positivos y negativos ya presentes). Leerlo antes de proponer.
+- Eventos detectables del par: `agent/tools/faers_triplet_coreport.R --mode rank
+  --drug1 "<d1; via>" --drug2 "<d2; via>"` da la tabla rankeada de coReportes de triplete a PT
+  con `single_drug_event_max` por evento (eventos alternativos del par y el peso mono-farmaco
+  del Paso 3).
 - Compendios de interacciones:
   - DB de IDD: `agent/tools/ddinter_lookup.R` (DDInter local, CSVs en `input/ddinter/`).
     Es **pair-level**: responde si el par tiene interaccion documentada y su `Level`,
@@ -69,7 +75,7 @@ workbook e imprime el cursor siguiente para continuar la pasada. Columnas entreg
 - `pair_coreport`: coadministracion pediatrica real (plausibilidad).
 - `triplet_coreport >= 1`: par y evento en el mismo caso pediatrico de FAERS (implica
   `pair_coreport >= 1`); piso de detectabilidad ya aplicado por el generador. Un triplete
-  sin coReporte es indetectable por el benchmark (negativo trivial).
+  sin coReporte de triplete es indetectable por el benchmark (negativo trivial).
 
 ### Paso 2 — Tamiz contra compendios (irreductible)
 Por cada candidato, consultar y **registrar fecha + fuente + resultado**. Las dos

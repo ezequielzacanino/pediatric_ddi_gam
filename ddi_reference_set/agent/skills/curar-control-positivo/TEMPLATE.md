@@ -30,11 +30,12 @@
 - Evento atribuible a la interaccion (no a un solo farmaco): <...>
 - Limitaciones: <...>
 
-## Coadministracion FAERS por etapa NICHD
+## CoReporte del triplete por etapa NICHD (FAERS)
 
-<!-- salida de agent/tools/faers_triplet_coreport.R; por defecto todas las etapas >= 1 -->
+<!-- salida de agent/tools/faers_triplet_coreport.R (par + evento en el mismo caso);
+     por defecto todas las etapas >= 1 -->
 
-| nichd | coadmin_reports |
+| nichd | triplet_coreports |
 |---|---:|
 | term_neonatal | <int> |
 | infancy | <int> |

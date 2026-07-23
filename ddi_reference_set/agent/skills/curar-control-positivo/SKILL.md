@@ -29,10 +29,13 @@ evidencia es solo adulta/teorica, NO es positivo (ver Exclusiones).
   etiquetas FDA via el servidor MCP `biomcp` (`openfda_label_searcher`/`openfda_label_getter`)
   y FAERS (`openfda_adverse_searcher`), ensayos (`trial_searcher`); DDInter del par como
   soporte mecanistico via `agent/tools/ddinter_lookup.R` (pair-level, nunca primaria);
-  y, si esta disponible, el coReporte FAERS por etapa NICHD (coadministracion real).
+  y, si esta disponible, el coReporte del triplete por etapa NICHD (par + evento en el mismo caso).
 - Vocabulario del workbook: los desplegables `ref_atc` (formato `sustancia; via`)
   y `ref_llt/ref_pt/ref_hlt/ref_hlgt`. Resolver y validar el string exacto del
   desplegable con `agent/tools/vocab_lookup.R` (ver Paso 5), sin cargar las hojas enteras.
+- Set ya curado: `agent/workspace/curated_index.tsv` (triplet_id, par, evento y fuente de los
+  positivos y negativos ya presentes). Leerlo antes de proponer: no repetir un par+evento ya
+  cargado y preferir eventos complementarios.
 
 ## Procedimiento (ejecutar en orden)
 
@@ -42,13 +45,21 @@ riesgo de `evento` por una IDD". Identificar el mecanismo plausible
 (`pharmacokinetic`, `pharmacodynamic`, `mixed`, `pharmaceutical`, `unknown`).
 
 ### Paso 2 — Verificacion FAERS por etapa
-Pegar el coReporte por etapa NICHD. Regla por defecto: aceptar solo si todas las
-etapas tienen `coadmin_reports >= 1`, salvo instruccion explicita. Documentar.
-Una vez mapeado el evento MedDRA, verificar que el triplete es detectable ejecutando desde ddi_reference_set/:
+Listar los eventos detectables del par (coReporte de triplete pediatrico a nivel PT,
+rankeados, con `single_drug_event_max` por evento) ejecutando desde ddi_reference_set/:
+
+& 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' agent\tools\faers_triplet_coreport.R --mode rank --drug1 "<drug1; via>" --drug2 "<drug2; via>"
+
+La tabla es un tamiz de detectabilidad, no un selector de eventos: el evento se elige por la
+literatura y el mecanismo (Paso 3) entre los detectables; `single_drug_event_max` alto avisa de
+confusion mono-farmaco. Una vez mapeado el evento MedDRA, confirmar el triplete y su desglose
+por etapa NICHD:
 
 & 'C:\Program Files\R\R-4.4.2\bin\Rscript.exe' agent\tools\faers_triplet_coreport.R --drug1 "<drug1; via>" --drug2 "<drug2; via>" --event-pt "<PT>"
 
-Si tiene 0 reportes de triplete, buscar si es remapeable a otro evento detectable o descartar triplete
+Regla por defecto: aceptar solo si todas las etapas tienen `triplet_coreports >= 1`, salvo
+instruccion explicita. Documentar. Si el evento tiene 0 coReportes de triplete, remapearlo a otro
+evento detectable de la lista o descartar el triplete.
 
 ### Paso 3 — Busqueda de evidencia (irreductible)
 Buscar y registrar (fecha + query + resultado) en al menos: etiqueta FDA (biomcp

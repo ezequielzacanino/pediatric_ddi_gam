@@ -397,8 +397,8 @@ count_triplet_coreports <- function(ade, drug1_id, drug2_id, event_id) {
   # Per-stage counts, guaranteeing one row per canonical NICHD stage in order.
   stage_reports <- unique(ade[safetyreportid %in% triplet_reports, .(safetyreportid, nichd)])
   per_stage <- data.table(nichd = niveles_nichd)
-  per_stage[stage_reports[, .(coreports = uniqueN(safetyreportid)), by = nichd],
-            on = "nichd", coreports := i.coreports]
-  per_stage[is.na(coreports), coreports := 0L]
+  per_stage[stage_reports[, .(triplet_coreports = uniqueN(safetyreportid)), by = nichd],
+            on = "nichd", triplet_coreports := i.triplet_coreports]
+  per_stage[is.na(triplet_coreports), triplet_coreports := 0L]
   list(total = length(triplet_reports), per_stage = per_stage)
 }
